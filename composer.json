@@ -1,0 +1,12 @@
+{
+    "require-dev": {
+        "silex/silex": "^2.0",
+        "symfony/http-foundation": "^3.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Krak\\Mw\\": "src"
+        },
+        "files": ["src/mw.php"]
+    }
+}
