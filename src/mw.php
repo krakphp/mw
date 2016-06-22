@@ -2,77 +2,51 @@
 
 namespace Krak\Mw;
 
-use Symfony\Component\HttpFoundation\Request;
+require_once __DIR__ . '/Filter/filter.php';
+require_once __DIR__ . '/Symfony/symfony.php';
+require_once __DIR__ . '/app.php';
+require_once __DIR__ . '/kernel.php';
+require_once __DIR__ . '/response_factory.php';
 
-const ORDER_FIFO = 'fifo';
-const ORDER_LIFO = 'lifo';
+use Psr\Http\Message;
 
 interface Middleware {
-    /** @param Request $req
-        @param \Closure $next a func that takes in a request object
+    /** @param Message\ServerRequestInterface $req
+        @param \Closure $next a func that takes in a ServerRequestInterface object
+        @return Message\ResponseInterface
     */
-    public function __invoke(Request $req, $next);
+    public function __invoke(Message\ServerRequestInterface $req, $next);
 }
 
-/** Resolves a request into a modified request response tuple */
-interface MwResolve {
-    public function __invoke(Request $req);
-}
-
-class MwStackResolve implements MwResolve
-{
-    private $mws;
-
-    public function __construct($mws = []) {
-        $this->mws = $mws;
-    }
-
-    public function pushMw($mw) {
-        array_push($this->mws, $mw);
-    }
-    public function popMw() {
-        return array_pop($this->mws);
-    }
-
-    public function __invoke(Request $req) {
-        $resolve = mw_resolve($this->mws, ORDER_LIFO);
-        return $resolve($req);
-    }
-}
-
-/** Takes a set of middleware and executes them on the request. The algorithm
-    for resolving the `$next` requires the $mws to be reversed if you want FIFO
-    execution. */
-function mw_resolve(array $mws, $order = ORDER_FIFO) {
-    if ($order == ORDER_FIFO) {
-        $mws = array_reverse($mws);
-    }
-
-    return function(Request $req) use ($mws) {
-        if (count($mws) == 0) {
-            return [$req, null];
+function filter($mw, $predicate) {
+    return function(Message\ServerRequestInterface $req, $next) use ($mw, $predicate) {
+        if ($predicate($req)) {
+            return $mw($req, $next);
         }
 
-        $mw = array_pop($mws);
-
-        $resolved_req;
-        $resolve_request = function(Request $req) use (&$resolved_req) {
-            $resolved_req = $req;
-        };
-
-        $next = array_reduce($mws, function($acc, $mw) {
-            return function(Request $req) use ($acc, $mw) {
-                return $mw($req, $acc);
-            };
-        }, $resolve_request);
-
-        $resp = $mw($req, $next);
-        return [$resolved_req, $resp];
+        return $next($req);
     };
 }
 
-function mock_mw_resolve($res) {
-    return function(Request $req) use ($res) {
-        return $res;
+/** lazily create the middleware once it needs to be executed */
+function lazy($mw) {
+    return function(Message\ServerRequestInterface $req, $next) use ($mw_gen) {
+        static $mw;
+        if (!$mw) {
+            $mw = $mw_gen();
+        }
+
+        return $mw($req, $next);
+    };
+}
+
+/** catches an execption delegates exception to a handler */
+function catchException($handler) {
+    return function(Message\ServerRequestInterface $req, $next) use ($handler) {
+        try {
+            return $next($req);
+        } catch (\Exception $e) {
+            return $handler($req, $e);
+        }
     };
 }
