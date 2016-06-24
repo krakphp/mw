@@ -1,13 +1,14 @@
 {
     "name": "krak/mw",
-    "description": "Middleware library",
+    "description": "Middleware Framework",
     "type": "library",
     "license": "MIT",
     "homepage": "http://gitlab.bighead.net/krak/mw",
     "keywords": [
         "middleware",
-        "silex",
-        "stackphp"
+        "http",
+        "framework",
+        "psr7"
     ],
     "authors": [
         {
