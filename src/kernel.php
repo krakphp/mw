@@ -46,15 +46,9 @@ function mwHttpKernel(array $mws, $order = ORDER_FIFO) {
     return function(Message\ServerRequestInterface $req) use ($mws) {
         $mw = array_pop($mws);
 
-        $final_next = function(Message\ServerRequestInterface $req) {
+        $next = composeMwSet($mws, function(Message\ServerRequestInterface $req) {
             throw new \Exception('All middleware executed and no response was returned');
-        };
-
-        $next = array_reduce($mws, function($acc, $mw) {
-            return function(Message\ServerRequestInterface $req) use ($acc, $mw) {
-                return $mw($req, $acc);
-            };
-        }, $final_next);
+        });
 
         return $mw($req, $next);
     };
