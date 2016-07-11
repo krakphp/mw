@@ -46,13 +46,15 @@ $resp_factory = Mw\diactorosResponseFactory();
 
 $kernel = Mw\mwHttpKernel([
     addAttribute('x-attr', 'some-value...'),
-    Mw\filter(show404($resp_factory), Filter\path('~^(/d)$~')),
+    Mw\filter(show404($resp_factory), function($req) { return $req->getUri()->getPath() == '/d'; }),
     resolveResponse($resp_factory)
 ]);
 
 $app = Mw\diactorosApp();
 $app($kernel);
 ```
+
+For a more full featured example, look in the `example` directory.
 
 ### HttpKernel
 
@@ -61,27 +63,6 @@ The kernels are responsible for taking a `ServerRequestInterface` and returning 
 ### Middleware
 
 A middleware is also responsible for returning a request into a response; however, they are designed to easily be chainable instead of having to use decoration to add functionality. Currently, middleware is only useful when using the `mwHttpKernel` which transforms a set of middleware into a kernel.
-
-#### Filter
-
-`Krak\mw\filter` allows some middleware to be executed if they pass a test (a function that takes a request and returns a boolean). There are several filters setup to ease the creation and filtering of middleware.
-
-```php
-<?php
-
-use Krak\Mw\Filter;
-
-$filter = Filter\opAnd([
-    Filter\path('/a', false),
-    Filter\path('/b', false)
-]);
-$filter = Filter\opOr([
-    $filter,
-    Filter\header('X-Header', 'some-value', false)
-]);
-
-// now $filter can be used as the second parameter in the Krak\Mw\filter func
-```
 
 ### Response Factory
 
@@ -93,21 +74,6 @@ The benefit of using the response factory comes from 3rd party middleware so tha
 
 The app component simply accepts a kernel and runs everything. The typical job of the http app is to generate a request, feed it to the kernel, and then emit the response.
 
-## Symfony Integration
+## Components
 
-Integration with symfony request and response is done easily with the `Krak\Mw\Symfony` module.
-
-```php
-<?php
-
-$app = new Silex\Application();
-
-// any other symfony http kernel would work here for $app
-list($mw, $mwapp) = Krak\Mw\Symfony\symfonyFactory($app);
-
-$kernel = Krak\Mw\mwHttpKernel([
-    $mw,
-]);
-
-$mwapp($kernel);
-```
+This is just the core library for the middleware framework. There are a ton more components for things like http auth, routing, exception handling, REST Framework integration, Web Framework Integration, Symfony/Silex integration and more!

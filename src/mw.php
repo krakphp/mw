@@ -2,7 +2,6 @@
 
 namespace Krak\Mw;
 
-require_once __DIR__ . '/Filter/filter.php';
 require_once __DIR__ . '/app.php';
 require_once __DIR__ . '/kernel.php';
 require_once __DIR__ . '/response_factory.php';

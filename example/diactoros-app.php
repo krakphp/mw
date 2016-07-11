@@ -1,9 +1,11 @@
 <?php
 
+// run with: php -S 127.0.0.1:8000 example/diactoros-app.php
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Krak\Mw,
-    Krak\Mw\Filter;
+    Krak\HttpMessage\Match;
 
 /** Adds an attribute to the request */
 function addAttribute($name, $value) {
@@ -87,9 +89,9 @@ $kernel = Mw\mwHttpKernel([
         appendAttribute('x-attr', 'c'),
         appendAttribute('x-attr', 'b')
     ], Mw\ORDER_LIFO),
-    Mw\filter(appendAttribute('x-attr', 'd'), Filter\path('/d', false)),
-    Mw\filter(function() { throw new \Exception('bad something...'); }, Filter\path('/e', false)),
-    Mw\filter(show404($resp_factory), Filter\path('~^/f$~')),
+    Mw\filter(appendAttribute('x-attr', 'd'), Match\path('/d', Match\CMP_EQ)),
+    Mw\filter(function() { throw new \Exception('bad something...'); }, Match\path('/e', Match\CMP_EQ)),
+    Mw\filter(show404($resp_factory), Match\path('~^/f$~')),
     wrapHtml(),
     resolveResponse($resp_factory),
 ]);

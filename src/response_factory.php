@@ -38,3 +38,25 @@ function diactorosResponseFactory() {
         return new \Zend\Diactoros\Response($body, $status, $headers);
     };
 }
+
+/** json decorator which will json encode the data and set the json content type */
+function jsonResponseFactory($rf, $encode_opts = 0) {
+    return function($status = 200, array $headers = [], $body = null) use ($rf, $encode_opts) {
+        return $rf($status, $headers, json_encode($body, $encode_opts))
+            ->withHeader('Content-Type', 'application/json');
+    };
+}
+
+/** html decorator which will set the text/html content-type on the response */
+function htmlResponseFactory($rf) {
+    return function($status = 200, array $headers = [], $body = null) use ($rf) {
+        return $rf($status, $headers, $body)->withHeader('Content-Type', 'text/html');
+    };
+}
+
+/** text decorator which will set the text/plain content-type on the response */
+function textResponseFactory($rf) {
+    return function($status = 200, array $headers = [], $body = null) use ($rf) {
+        return $rf($status, $headers, $body)->withHeader('Content-Type', 'text/plain');
+    };
+}
