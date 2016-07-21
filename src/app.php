@@ -3,8 +3,7 @@
 namespace Krak\Mw;
 
 use Psr\Log\LoggerInterface,
-    Zend\Diactoros,
-    Symfony\Component\HttpKernel;
+    Zend\Diactoros;
 
 /** An HttpApp is responsible for taking a kernel and generating the request,
     running the kernel, and then emitting the response */
@@ -26,5 +25,17 @@ function diactorosApp(
     return function($kernel) use ($emitter, $req_factory) {
         $resp = $kernel($req_factory());
         $emitter->emit($resp);
+    };
+}
+
+/** this is useful if you only define mw on certain routes, but there are routes
+    that you want to go through to a different application */
+function silentFailApp($app) {
+    return function($kernel) use ($app) {
+        try {
+            $app($kernel);
+        } catch (\Exception $e) {
+            // silently fail
+        }
     };
 }

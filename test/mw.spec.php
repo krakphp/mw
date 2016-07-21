@@ -39,4 +39,7 @@ describe('Mw', function() {
             ));
         });
     });
+    describe('HttpApp', function() {
+        require_once __DIR__ . '/app.php';
+    });
 });
