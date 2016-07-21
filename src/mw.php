@@ -6,7 +6,8 @@ require_once __DIR__ . '/app.php';
 require_once __DIR__ . '/kernel.php';
 require_once __DIR__ . '/response_factory.php';
 
-use Psr\Http\Message;
+use Psr\Http\Message,
+    Krak\HttpMessage\Match;
 
 interface Middleware {
     /** @param Message\ServerRequestInterface $req
@@ -24,6 +25,30 @@ function filter($mw, $predicate) {
 
         return $next($req);
     };
+}
+
+function mount($path, $mw, $cmp = Match\CMP_SW) {
+    return filter($mw, Match\path($path, $cmp));
+}
+
+function on() {
+    $args = func_get_args();
+    if (count($args) < 2) {
+        throw new \InvalidArgumentException('Expected at least 2 arguments');
+    }
+
+    if (count($args) == 2) {
+        $method = 'GET';
+        $cmp = Match\CMP_EQ;
+        list($path, $mw) = $args;
+    } else if (count($args) == 3) {
+        $cmp = Match\CMP_EQ;
+        list($method, $path, $mw) = $args;
+    } else {
+        list($method, $path, $cmp, $mw) = $args;
+    }
+
+    return filter($mw, Match\route($method, $path, $cmp));
 }
 
 /** this will create a middleware that is composed together as one middleware. */

@@ -14,9 +14,9 @@ Here's an example of basic usage of the mw library.
 <?php
 
 use Krak\Mw,
-    Krak\Mw\Filter;
+    Krak\HttpMessage\Match;
 
-function addAttribute($name, $value) {
+function injectAttribute($name, $value) {
     return function($req, $next) use ($name, $value) {
         return $next($req->withAttribute($name, $value));
     };
@@ -28,26 +28,23 @@ function show404($resp_factory) {
     };
 }
 
-function resolveResponse($resp_factory) {
-    return function($req, $next) use ($resp_factory) {
-        $path = $req->getUri()->getPath();
-        if ($path == '/a') {
-            return $resp_factory(200, ['Content-Type' => 'text/plain'], 'A Response....');
-        }
-        else if ($path == '/b') {
-            return $resp_factory(200, ['Content-Type' => 'text/html'], '<h1>B!</h1>');
-        }
-
-        return $resp_factory(200, ['Content-Type' => 'text/plain'], print_r($req->getAttributes(), true));
-    };
-}
-
-$resp_factory = Mw\diactorosResponseFactory();
+$rf = Mw\diactorosResponseFactory();
+$json_rf = Mw\jsonResponseFactory($rf, JSON_PRETTY_PRINT);
+$html_rf = Mw\htmlResponseFactory($rf);
+$text_rf = Mw\textResponseFactory($rf);
 
 $kernel = Mw\mwHttpKernel([
-    addAttribute('x-attr', 'some-value...'),
-    Mw\filter(show404($resp_factory), function($req) { return $req->getUri()->getPath() == '/d'; }),
-    resolveResponse($resp_factory)
+    injectAttribute('x-attr', 'value'),
+    Mw\filter(show404($rf), function($req) { return $req->getUri()->getPath() == '/d'; }),
+    Mw\on('/a', function() use ($text_rf) {
+        return $text_rf(200, [], 'A Text Response');
+    }),
+    Mw\on('GET', '/b', function() use ($html_rf) {
+        return $html_rf(200, [], '<h1>An Html Response</h1>');
+    }),
+    function($req) use ($json_rf) {
+        return $json_rf(200, [], $req->getAttributes());
+    }
 ]);
 
 $app = Mw\diactorosApp();
@@ -76,4 +73,8 @@ The app component simply accepts a kernel and runs everything. The typical job o
 
 ## Components
 
-This is just the core library for the middleware framework. There are a ton more components for things like http auth, routing, exception handling, REST Framework integration, Web Framework Integration, Symfony/Silex integration and more!
+This is just the core library for the middleware framework. There are a ton more components for things like http auth, routing, exception handling, REST Framework integration, Web Framework Integration, Symfony/Silex integration, CodeIgniter integration, and more!
+
+- [Routing](https://gitlab.bighead.net/krak-mw/mw-routing)
+- [JWT Authentication](https://gitlab.bighead.net/krak-mw/mw-jwt-auth)
+- [CodeIgniter Integration](https://gitlab.bighead.net/krak-mw/mw-codeigniter)
