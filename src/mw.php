@@ -40,7 +40,7 @@ function compose($mws, $order = ORDER_FIFO) {
 }
 
 /** lazily create the middleware once it needs to be executed */
-function lazy($mw) {
+function lazy($mw_gen) {
     return function(Message\ServerRequestInterface $req, $next) use ($mw_gen) {
         static $mw;
         if (!$mw) {
