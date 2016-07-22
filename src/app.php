@@ -30,10 +30,13 @@ function diactorosApp(
 
 /** this is useful if you only define mw on certain routes, but there are routes
     that you want to go through to a different application */
-function silentFailApp($app) {
-    return function($kernel) use ($app) {
+function silentFailApp($app, $exit = true) {
+    return function($kernel) use ($app, $exit) {
         try {
             $app($kernel);
+            if ($exit) {
+                exit;
+            }
         } catch (\Exception $e) {
             // silently fail
         }
