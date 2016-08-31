@@ -39,6 +39,19 @@ describe('Mw', function() {
             ));
         });
     });
+    describe('#compose', function() {
+        it('composes a set of middleware into a single middleware', function() {
+            $req = new Psr7\ServerRequest('GET', '/api');
+            $a = function($req, $next) { return $next($req->withAttribute('a', 1)); };
+            $b = function($req, $next) { return $next($req->withAttribute('b', 2)); };
+
+            $mw = mw\compose([$a, $b]);
+            $res = $mw(new Psr7\ServerRequest('GET', '/api'), function($req) {
+                return $req->getAttributes();
+            });
+            assert($res == ['a' => 1, 'b' => 2]);
+        });
+    });
     describe('HttpApp', function() {
         require_once __DIR__ . '/app.php';
     });

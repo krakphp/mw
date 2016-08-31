@@ -17,7 +17,8 @@
         }
     ],
     "require": {
-        "krak/http-message": "^0.1.0"
+        "krak/http-message": "^0.1.0",
+        "krak/mw-compose": "^0.1.0"
     },
     "require-dev": {
         "guzzlehttp/psr7": "^1.3",

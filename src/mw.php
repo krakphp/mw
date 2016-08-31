@@ -58,9 +58,8 @@ function compose($mws, $order = ORDER_FIFO) {
     }
 
     return function(Message\ServerRequestInterface $req, $next) use ($mws) {
-        $mw = array_pop($mws);
-        $next = composeMwSet($mws, $next);
-        return $mw($req, $next);
+        $mw = composeMwSet($mws, $next);
+        return $mw($req);
     };
 }
 
@@ -85,13 +84,4 @@ function catchException($handler) {
             return $handler($req, $e);
         }
     };
-}
-
-/** this is a utility function that will compose a set of mw into a next function. */
-function composeMwSet($mws, $next) {
-    return array_reduce($mws, function($acc, $mw) {
-        return function(Message\ServerRequestInterface $req) use ($acc, $mw) {
-            return $mw($req, $acc);
-        };
-    }, $next);
 }
