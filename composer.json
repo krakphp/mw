@@ -3,7 +3,7 @@
     "description": "Middleware Framework",
     "type": "library",
     "license": "MIT",
-    "homepage": "http://gitlab.bighead.net/krak/mw",
+    "homepage": "https://gitlab.bighead.net/krak-mw/mw",
     "keywords": [
         "middleware",
         "framework"
