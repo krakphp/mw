@@ -8,25 +8,31 @@ use Countable,
 
 class MwStack implements Countable
 {
+    private $name;
     private $entries;
     private $heap;
     private $name_map;
 
-    public function __construct() {
+    public function __construct($name) {
+        $this->name = $name;
         $this->entries = [];
         $this->heap = new SplMinHeap();
         $this->name_map = [];
+    }
+
+    public function getName() {
+        return $this->name;
     }
 
     public function count() {
         return count($this->entries);
     }
 
-    public function push(...$params) {
-        return $this->insertEntry(stackEntry(...$params), 'array_push');
+    public function push($mw, $sort = 0, $name = null) {
+        return $this->insertEntry(stackEntry($mw, $sort, $name), 'array_push');
     }
-    public function unshift(...$params) {
-        return $this->insertEntry(stackEntry(...$params), 'array_unshift');
+    public function unshift($mw, $sort = 0, $name = null) {
+        return $this->insertEntry(stackEntry($mw, $sort, $name), 'array_unshift');
     }
 
     /** insert a middleware before the given middleware */
@@ -126,8 +132,15 @@ class MwStack implements Countable
         return $mw(...$params);
     }
 
-    public function compose() {
-        return compose($this->normalize());
+    public function compose($last = null) {
+        if (!$this->count()) {
+            throw new \RuntimeException(sprintf('Middleware stack "%s" is empty. You cannot compose an empty middleware stack.', $this->getName()));
+        }
+        $last = $last ?: function() {
+            throw new \RuntimeException(sprintf('Middleware stack "%s" was not able to return a response. No middleware in the stack returned a response.', $this->getName()));
+        };
+
+        return compose($this->normalize(), $last);
     }
 
     public function getEntries() {
@@ -138,8 +151,8 @@ class MwStack implements Countable
         }
     }
 
-    public static function createFromEntries($entries) {
-        $stack = new self();
+    public static function createFromEntries($name, $entries) {
+        $stack = new self($name);
         foreach ($entries as $entry) {
             $stack->insertEntry($entry, 'array_push');
         }

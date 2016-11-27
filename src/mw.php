@@ -30,7 +30,7 @@ use function iter\map,
 */
 function compose(array $mws, $last = null) {
     $last = $last ?: function() {
-        throw new RuntimeException("Last middleware was reached. No handlers were found.");
+        throw new RuntimeException("No middleware returned a response.");
     };
 
     return array_reduce($mws, function($acc, $mw) {
@@ -134,8 +134,8 @@ function stackEntry($mw, $sort = 0, $name = null) {
     return [$mw, $sort, $name];
 }
 
-function stack(array $entries = []) {
-    return MwStack::createFromEntries($entries);
+function stack($name, array $entries = []) {
+    return MwStack::createFromEntries($name, $entries);
 }
 
 /** merges multiple stacks together into a new stack */
@@ -145,7 +145,7 @@ function stackMerge(...$stacks) {
         return $stack->getEntries();
     }, $stacks));
 
-    return MwStack::createFromEntries($entries);
+    return MwStack::createFromEntries($stacks[0]->getName(), $entries);
 }
 
 function _splitArgs($params) {

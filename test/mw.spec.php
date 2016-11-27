@@ -75,7 +75,7 @@ describe('Mw', function() {
     });
     describe('MwStack', function() {
         it('maintains a stack of middleware with priority', function() {
-            $stack = mw\stack();
+            $stack = mw\stack('stack');
             $stack->push('a', 10);
             $stack->push('b', 5);
             $stack->push('d', 5);
@@ -87,7 +87,7 @@ describe('Mw', function() {
             assert($res1 == 'cba' && $res1 == $res2);
         });
         it('allows for named middleware', function() {
-            $stack = mw\stack();
+            $stack = mw\stack('stack');
             $stack->push('a', 0, 'first');
             $stack->push('b', 1, 'first');
 
@@ -95,7 +95,7 @@ describe('Mw', function() {
             assert($res == 'b');
         });
         it('allows shifting and unshifting', function() {
-            $stack = mw\stack();
+            $stack = mw\stack('stack');
             $stack->unshift('b');
             $stack->unshift('c', 1);
             $stack->unshift('a');
@@ -106,22 +106,43 @@ describe('Mw', function() {
             assert($res == 'abc');
         });
         it('can add elements before or after other middleware', function() {
-            $stack = mw\stack();
+            $stack = mw\stack('stack');
             $stack->push('b', 0, 'mw');
             $stack->before('mw', 'a');
             $stack->after('mw', 'c');
             $res = implode($stack->normalize());
             assert($res == 'abc');
         });
+        it('has a name', function() {
+            $stack = mw\stack('stack');
+            assert($stack->getName() == 'stack');
+        });
+        it('throws exception if composing on empty', function() {
+            try {
+                mw\stack('stack')->compose();
+                assert(false);
+            } catch (RuntimeException $e) {
+                assert(strpos($e->getMessage(), 'Middleware stack "stack" is empty') === 0);
+            }
+        });
+        it('throws exception if no middleware resolve', function() {
+            try {
+                $handler = mw\stack('stack')->push(function($next) { $next(); })->compose();
+                $handler();
+                assert(false);
+            } catch (RuntimeException $e) {
+                assert(strpos($e->getMessage(), 'Middleware stack "stack" was not able to return') === 0);
+            }
+        });
     });
     describe('#stackMerge', function() {
         it('merges stacks together into a new stack', function() {
-            $a = mw\stack([
+            $a = mw\stack('stack', [
                 mw\stackEntry('a'),
                 mw\stackEntry('b'),
                 mw\stackEntry('d', 0, 'mw')
             ]);
-            $b = mw\stack([
+            $b = mw\stack('stack', [
                 mw\stackEntry('c', 0, 'mw'),
             ]);
             $c = mw\stackMerge($a, $b);
