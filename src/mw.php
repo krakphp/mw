@@ -28,7 +28,7 @@ use function iter\map,
     @param callable $last The final handler in case no middleware resolves the arguments
     @return \Closure the composed set of middleware as a handler
 */
-function compose(array $mws, $last = null) {
+function compose(array $mws, callable $last = null) {
     $last = $last ?: function() {
         throw new RuntimeException("No middleware returned a response.");
     };
@@ -93,7 +93,7 @@ function group(array $mws) {
     @param callable $mw_gen Creates the middleware
     @return \Closure the middleware
 */
-function lazy($mw_gen) {
+function lazy(callable $mw_gen) {
     return function(...$params) use ($mw_gen) {
         static $mw;
         if (!$mw) {
@@ -118,7 +118,7 @@ function lazy($mw_gen) {
     assert($handler(5) == 1 && $handler(4) == 2);
     ```
 */
-function filter($mw, $predicate) {
+function filter(callable $mw, callable $predicate) {
     return function(...$all_params) use ($mw, $predicate) {
         list($params, $next) = _splitArgs($all_params);
         if ($predicate(...$params)) {
@@ -130,7 +130,7 @@ function filter($mw, $predicate) {
 }
 
 /** higher the sort, the sooner it will execute in the stack */
-function stackEntry($mw, $sort = 0, $name = null) {
+function stackEntry(callable $mw, $sort = 0, $name = null) {
     return [$mw, $sort, $name];
 }
 

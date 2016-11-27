@@ -1,6 +1,9 @@
 PERIDOT = ./vendor/bin/peridot
 
-.PHONY: test
+.PHONY: test docs
 
 test:
 	$(PERIDOT) test
+
+docs:
+	cd docs; make html

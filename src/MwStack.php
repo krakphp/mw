@@ -28,15 +28,15 @@ class MwStack implements Countable
         return count($this->entries);
     }
 
-    public function push($mw, $sort = 0, $name = null) {
+    public function push(callable $mw, $sort = 0, $name = null) {
         return $this->insertEntry(stackEntry($mw, $sort, $name), 'array_push');
     }
-    public function unshift($mw, $sort = 0, $name = null) {
+    public function unshift(callable $mw, $sort = 0, $name = null) {
         return $this->insertEntry(stackEntry($mw, $sort, $name), 'array_unshift');
     }
 
     /** insert a middleware before the given middleware */
-    public function before($name, $mw, $mw_name = null) {
+    public function before($name, callable $mw, $mw_name = null) {
         if (!array_key_exists($name, $this->name_map)) {
             throw new InvalidArgumentException(sprintf('Middleware %s does not exist', $name));
         }
@@ -48,7 +48,7 @@ class MwStack implements Countable
         });
     }
     /** insert a middleware after the given middleware  */
-    public function after($name, $mw, $mw_name = null) {
+    public function after($name, callable $mw, $mw_name = null) {
         if (!array_key_exists($name, $this->name_map)) {
             throw new InvalidArgumentException(sprintf('Middleware %s does not exist', $name));
         }
@@ -147,7 +147,7 @@ class MwStack implements Countable
         return $mw(...$params);
     }
 
-    public function compose($last = null) {
+    public function compose(callable $last = null) {
         if (!$this->count()) {
             throw new \RuntimeException(sprintf('Middleware stack "%s" is empty. You cannot compose an empty middleware stack.', $this->getName()));
         }

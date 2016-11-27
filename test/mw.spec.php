@@ -2,6 +2,18 @@
 
 use Krak\Mw;
 
+function append($c) {
+    return function($s, $next) use ($c) {
+        return $next($s . $c);
+    };
+}
+
+function id() {
+    return function($x) {
+        return $x;
+    };
+}
+
 describe('Mw', function() {
     describe('#compose', function() {
         it('composes a set of middleware into a handler', function() {
@@ -20,16 +32,14 @@ describe('Mw', function() {
     });
     describe('#group', function() {
         it('groups a set of middleware into one middleware', function() {
-            $append = function($c) { return function($s, $next) use ($c) { return $next($s . $c); }; };
-
             $handler = mw\compose([
-                function($v) { return $v; },
-                $append('d'),
+                id(),
+                append('d'),
                 mw\group([
-                    $append('c'),
-                    $append('b'),
+                    append('c'),
+                    append('b'),
                 ]),
-                $append('a'),
+                append('a'),
             ]);
 
             $res = $handler('');
@@ -76,44 +86,38 @@ describe('Mw', function() {
     describe('MwStack', function() {
         it('maintains a stack of middleware with priority', function() {
             $stack = mw\stack('stack');
-            $stack->push('a', 10);
-            $stack->push('b', 5);
-            $stack->push('d', 5);
-            $stack->push('c');
+            $stack->push(append('a'), 10);
+            $stack->push(append('b'), 5);
+            $stack->push(append('0'), 5);
+            $stack->push(id())->push(append('c'));
             $stack->pop(5);
 
-            $res1 = implode($stack->normalize());
-            $res2 = implode($stack->normalize());
-            assert($res1 == 'cba' && $res1 == $res2);
-        });
-        it('allows for named middleware', function() {
-            $stack = mw\stack('stack');
-            $stack->push('a', 0, 'first');
-            $stack->push('b', 1, 'first');
-
-            $res = implode($stack->normalize());
-            assert($res == 'b');
+            $handler = $stack->compose();
+            assert($handler('') == 'abc');
         });
         it('allows shifting and unshifting', function() {
             $stack = mw\stack('stack');
-            $stack->unshift('b');
-            $stack->unshift('c', 1);
-            $stack->unshift('a');
-            $stack->unshift('d');
+            $stack->unshift(append('b'));
+            $stack->unshift(append('a'), 1);
+            $stack->unshift(append('c'));
+            $stack->unshift(append('d'));
             $stack->shift();
+            $stack->unshift(id());
 
-            $res = implode($stack->normalize());
-            assert($res == 'abc');
+            $handler = $stack->compose();
+
+            assert($handler('') == 'abc');
         });
         it('can add elements before or after other middleware', function() {
             $stack = mw\stack('stack');
-            $stack->push('a');
-            $stack->push('c', 0, 'mw');
-            $stack->push('e');
-            $stack->before('mw', 'b');
-            $stack->after('mw', 'd');
-            $res = implode($stack->normalize());
-            assert($res == 'abcde');
+            $stack->push(id());
+            $stack->push(append('a'));
+            $stack->push(append('c'), 0, 'mw');
+            $stack->push(append('e'));
+            $stack->before('mw', append('b'));
+            $stack->after('mw', append('d'));
+            $handler = $stack->compose();
+            assert($handler('') == 'edcba');
         });
         it('has a name', function() {
             $stack = mw\stack('stack');
@@ -138,27 +142,29 @@ describe('Mw', function() {
         });
         it('replaces an entry if it is pushed with the same name', function() {
             $stack = mw\stack('stack');
-            $stack->push('a');
-            $stack->push('d', 0, 'mw');
-            $stack->push('c');
-            $stack->push('b', 0, 'mw');
-            $res = implode($stack->normalize());
-            assert($res == 'abc');
+            $stack->push(id())
+                ->push(append('a'))
+                ->push(append('d'), 0, 'mw')
+                ->push(append('c'))
+                ->push(append('b'), 0, 'mw');
+            $handler = $stack->compose();
+            assert($handler('') == 'cba');
         });
     });
     describe('#stackMerge', function() {
         it('merges stacks together into a new stack', function() {
             $a = mw\stack('stack', [
-                mw\stackEntry('a'),
-                mw\stackEntry('b'),
-                mw\stackEntry('d', 0, 'mw')
+                mw\stackEntry(id()),
+                mw\stackEntry(append('a')),
+                mw\stackEntry(append('b')),
+                mw\stackEntry(append('d'), 0, 'mw')
             ]);
             $b = mw\stack('stack', [
-                mw\stackEntry('c', 0, 'mw'),
+                mw\stackEntry(append('c'), 0, 'mw'),
             ]);
             $c = mw\stackMerge($a, $b);
-            $res = implode($c->normalize());
-            assert($res == 'abc');
+            $handler = $c->compose();
+            assert($handler('') == 'cba');
         });
     });
 });

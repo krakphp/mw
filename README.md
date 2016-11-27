@@ -6,78 +6,20 @@ The Mw library is a very flexible framework for converting middleware into handl
 
 You can install this as composer package at `krak/mw`
 
-## Usage
+## Documentation
 
-Here's an example of basic usage of the mw library.
+You can build the docs via:
 
-```php
-<?php
-
-use Krak\Mw;
-
-function sum() {
-    return funciton($a, $b, $next) {
-        return $a + $b;
-    };
-}
-
-function modifyBy($value) {
-    return function($a, $b, $next) use ($value) {
-        return $next($a + $value, $b);
-    };
-}
-
-$sum = mw\compose([
-    sum(),
-    modifyBy(1),
-]);
-
-$res = $sum(1, 2);
-// $res = 4
+```bash
+make docs
 ```
 
-The first value in the array is executed last; the last value is executed first.
+## Tests and Examples
 
-```
-1,2 -> modifyBy(1) -> 2,2 -> sum() -> 4 -> modifyBy(1) -> 4
-```
+Run tests via:
 
-Each middleware shares the same format:
-
-```
-function($arg1, $arg2, ..., $next);
+```bash
+make test
 ```
 
-A list of arguments, with a final argument $next which is the next middleware function to execute in the stack of middleware.
-
-You need to have at least 1 argument and can have as many as you want. Every middleware needs to share the same signature. Composing a stack of middleware will return a handler which has the same signature as the middleware, but without the `$next` function.
-
-### Stack
-
-The library also comes with a MwStack that allows you to easily build a set of middleware.
-
-```php
-<?php
-
-use Krak\Mw;
-
-$stack = mw\stack();
-$stack->push(function($a, $next) {
-    return $next($a . 'b');
-})
-->push(function($a, $next) {
-    return $next($a) . 'c';
-})
-// this goes on first
-->unshift(function($a, $next) {
-    return $a;
-}));
-
-$handler = $stack->compose();
-$res = $handler('a');
-// $res = abc
-```
-
-## Api
-
-Todo - finish api
+The Mw library uses [Peridot](http://peridot-php.github.io). These [tests](test/mw.spec.php) also provide good examples of how to use the library.
