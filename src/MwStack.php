@@ -54,13 +54,22 @@ class MwStack implements Countable
         return $this->push($mw, $sort, $mw_name);
     }
 
+    private function replaceEntry($entry) {
+        list($mw, $sort, $name) = $entry;
+        $sort = $this->name_map[$name];
+        $idx = $this->findEntryByName($this->entries[$sort], $name);
+        $this->entries[$sort][$idx] = $entry;
+        return $this;
+    }
+
     private function insertEntry($entry, $insert) {
         list($mw, $sort, $name) = $entry;
         if ($name) {
-            // if we are pushing a named middleware, remove the old one so that
-            // we don't have any duplicates
-            $this->remove($name);
-            $this->name_map[$name] = $sort;
+            if (array_key_exists($name, $this->name_map)) {
+                return $this->replaceEntry($entry);
+            } else {
+                $this->name_map[$name] = $sort;
+            }
         }
 
         if (!isset($this->entries[$sort])) {

@@ -134,6 +134,15 @@ describe('Mw', function() {
                 assert(strpos($e->getMessage(), 'Middleware stack "stack" was not able to return') === 0);
             }
         });
+        it('replaces an entry if it is pushed with the same name', function() {
+            $stack = mw\stack('stack');
+            $stack->push('a');
+            $stack->push('d', 0, 'mw');
+            $stack->push('c');
+            $stack->push('b', 0, 'mw');
+            $res = implode($stack->normalize());
+            assert($res == 'abc');
+        });
     });
     describe('#stackMerge', function() {
         it('merges stacks together into a new stack', function() {
