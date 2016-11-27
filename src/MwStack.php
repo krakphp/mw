@@ -42,7 +42,10 @@ class MwStack implements Countable
         }
 
         $sort = $this->name_map[$name];
-        return $this->unshift($mw, $sort, $mw_name);
+        $idx = $this->findEntryByName($this->entries[$sort], $name);
+        return $this->insertEntry(stackEntry($mw, $sort, $mw_name), function(&$array, $entry) use ($idx) {
+            array_splice($array, $idx, 0, [$entry]);
+        });
     }
     /** insert a middleware after the given middleware  */
     public function after($name, $mw, $mw_name = null) {
@@ -51,7 +54,10 @@ class MwStack implements Countable
         }
 
         $sort = $this->name_map[$name];
-        return $this->push($mw, $sort, $mw_name);
+        $idx = $this->findEntryByName($this->entries[$sort], $name);
+        return $this->insertEntry(stackEntry($mw, $sort, $mw_name), function(&$array, $entry) use ($idx) {
+            array_splice($array, $idx + 1, 0, [$entry]);
+        });
     }
 
     private function replaceEntry($entry) {

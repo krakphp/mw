@@ -107,11 +107,13 @@ describe('Mw', function() {
         });
         it('can add elements before or after other middleware', function() {
             $stack = mw\stack('stack');
-            $stack->push('b', 0, 'mw');
-            $stack->before('mw', 'a');
-            $stack->after('mw', 'c');
+            $stack->push('a');
+            $stack->push('c', 0, 'mw');
+            $stack->push('e');
+            $stack->before('mw', 'b');
+            $stack->after('mw', 'd');
             $res = implode($stack->normalize());
-            assert($res == 'abc');
+            assert($res == 'abcde');
         });
         it('has a name', function() {
             $stack = mw\stack('stack');
