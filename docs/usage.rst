@@ -1,5 +1,8 @@
+=====
 Usage
 =====
+
+*Note:* each of these code samples can be seen in the ``example`` directory of the repo.
 
 Here's an example of basic usage of the mw library
 
@@ -9,29 +12,35 @@ Here's an example of basic usage of the mw library
 
     use Krak\Mw;
 
-    function sum() {
-        return funciton($a, $b, $next) {
-            return $a + $b;
+    function rot13() {
+        return function($s) {
+            return str_rot13($s);
         };
     }
 
-    function modifyBy($value) {
-        return function($a, $b, $next) use ($value) {
-            return $next($a + $value, $b);
+    function wrapInner($v) {
+        return function($s, $next) use ($v) {
+            return $next($v . $s . $v);
+        };
+    }
+    function wrapOuter($v) {
+        return function($s, $next) use ($v) {
+            return $v . $next($s) . $v;
         };
     }
 
-    $sum = mw\compose([
-        sum(),
-        modifyBy(1),
+    $handler = mw\compose([
+        rot13(),
+        wrapInner('o'),
+        wrapOuter('a'),
     ]);
 
-    $res = $sum(1, 2);
-    // $res = 4
+    echo $handler('p') . PHP_EOL;
+    // abcba
 
-The first value in the array is executed last; the last value is executed first. ::
+The first value in the array is executed last; the last value is executed first.
 
-    1,2 -> modifyBy(1) -> 2,2 -> sum() -> 4 -> modifyBy(1) -> 4
+.. image:: _static/stack.png
 
 Each middleware shares the same format: ::
 
@@ -41,8 +50,42 @@ A list of arguments, with a final argument $next which is the next middleware fu
 
 You can have 0 to n number of arguments. Every middleware needs to share the same signature. Composing a stack of middleware will return a handler which has the same signature as the middleware, but without the `$next` function.
 
+**IMPORTANT:** At least one middleware MUST resolve a response else the handler will throw an error. So make sure that the last middleware executed (the first in the set) will return a response.
+
+Before/After Middleware
+=======================
+
+Middleware can either be a *before* or *after* or both middleware. A before middleware runs before delegating to the ``$next`` middleware. An after middleware will runs *after* delegating to the ``$next`` middleware.
+
+Before Style
+
+.. code-block:: php
+
+    <?php
+
+    function($param, $next) {
+        // code goes here
+        // you can also modify the $param and pass the modified version to the next middleware
+        return $next($param);
+    }
+
+After Style
+
+.. code-block:: php
+
+    <?php
+
+    function($param, $next) {
+        $result = $next($param);
+
+        // code goes here
+        // you can also modify the $result and return the modified version to the previous handler
+
+        return $result;
+    }
+
 Stack
-~~~~~
+=====
 
 The library also comes with a MwStack that allows you to easily build a set of middleware.
 

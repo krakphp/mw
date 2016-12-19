@@ -28,8 +28,12 @@ Middleware provide a great system for extendable features and the Krak\\Mw libra
     $res = $handler('abc');
     // $res == 'xABCx'
 
+.. image:: _static/middleware.png
+
 .. toctree::
    :maxdepth: 2
 
    usage
    api
+   advanced-usage
+   troubleshooting

@@ -12,31 +12,36 @@ class MwStack implements Countable
     private $entries;
     private $heap;
     private $name_map;
+    private $invoke;
 
-    public function __construct($name) {
+    public function __construct($name, $invoke = null) {
         $this->name = $name;
         $this->entries = [];
         $this->heap = new SplMinHeap();
         $this->name_map = [];
+        $this->invoke = $invoke;
     }
 
     public function getName() {
         return $this->name;
+    }
+    public function getInvoke() {
+        return $this->invoke;
     }
 
     public function count() {
         return count($this->entries);
     }
 
-    public function push(callable $mw, $sort = 0, $name = null) {
+    public function push($mw, $sort = 0, $name = null) {
         return $this->insertEntry(stackEntry($mw, $sort, $name), 'array_push');
     }
-    public function unshift(callable $mw, $sort = 0, $name = null) {
+    public function unshift($mw, $sort = 0, $name = null) {
         return $this->insertEntry(stackEntry($mw, $sort, $name), 'array_unshift');
     }
 
     /** insert a middleware before the given middleware */
-    public function before($name, callable $mw, $mw_name = null) {
+    public function before($name, $mw, $mw_name = null) {
         if (!array_key_exists($name, $this->name_map)) {
             throw new InvalidArgumentException(sprintf('Middleware %s does not exist', $name));
         }
@@ -48,7 +53,7 @@ class MwStack implements Countable
         });
     }
     /** insert a middleware after the given middleware  */
-    public function after($name, callable $mw, $mw_name = null) {
+    public function after($name, $mw, $mw_name = null) {
         if (!array_key_exists($name, $this->name_map)) {
             throw new InvalidArgumentException(sprintf('Middleware %s does not exist', $name));
         }
@@ -147,7 +152,7 @@ class MwStack implements Countable
         return $mw(...$params);
     }
 
-    public function compose(callable $last = null) {
+    public function compose($last = null) {
         if (!$this->count()) {
             throw new \RuntimeException(sprintf('Middleware stack "%s" is empty. You cannot compose an empty middleware stack.', $this->getName()));
         }
@@ -155,7 +160,7 @@ class MwStack implements Countable
             throw new \RuntimeException(sprintf('Middleware stack "%s" was not able to return a response. No middleware in the stack returned a response.', $this->getName()));
         };
 
-        return compose($this->normalize(), $last);
+        return compose($this->normalize(), $last, $this->invoke);
     }
 
     public function getEntries() {
@@ -166,8 +171,8 @@ class MwStack implements Countable
         }
     }
 
-    public static function createFromEntries($name, $entries) {
-        $stack = new self($name);
+    public static function createFromEntries($name, $entries, $invoke = null) {
+        $stack = new self($name, $invoke);
         foreach ($entries as $entry) {
             $stack->insertEntry($entry, 'array_push');
         }

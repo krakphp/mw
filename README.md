@@ -22,6 +22,8 @@ $res = $handler('abc');
 // $res == 'xABCx'
 ```
 
+![](docs/_static/middleware.png)
+
 ## Installation
 
 You can install this as composer package at `krak/mw`
