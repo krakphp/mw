@@ -10,16 +10,16 @@ The Mw library is a very flexible framework for converting middleware into handl
 use Krak\Mw;
 
 $handler = mw\compose([
-    function($a, $next) {
-        return strtoupper($a);
+    function($s, $next) {
+        return strtoupper($s);
     },
-    function($a, $next) {
-        return $next('x' . $a . 'x');
+    function($s, $next) {
+        return 'x' . $next($s . 'x');
     }
 ]);
 
 $res = $handler('abc');
-// $res == 'xABCx'
+assert($res == 'xABCX');
 ```
 
 ![](docs/_static/middleware.png)

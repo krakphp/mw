@@ -17,16 +17,16 @@ Middleware provide a great system for extendable features and the Krak\\Mw libra
     use Krak\Mw;
 
     $handler = mw\compose([
-        function($a, $next) {
-            return strtoupper($a);
+        function($s, $next) {
+            return strtoupper($s);
         },
-        function($a, $next) {
-            return $next('x' . $a . 'x');
+        function($s, $next) {
+            return 'x' . $next($s . 'x');
         }
     ]);
 
     $res = $handler('abc');
-    // $res == 'xABCx'
+    assert($res == 'xABCX');
 
 .. image:: _static/middleware.png
 
