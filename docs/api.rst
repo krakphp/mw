@@ -120,6 +120,9 @@ Invoke Functions
 Closure pimpleAwareInvoke(Pimple\\Container $c, $invoke = 'call_user_func')
     invokes middleware while checking if the mw is a service defined in the pimple container
 
+Closure methodInvoke(string $method_name, $allow_callable = true, $invoke = 'call_user_func')
+    This will convert the middleware into a callable array like ``[$obj, $method_name]`` and invoke it. The ``$allow_callable`` parameter will allow the stack to either invoke objects with the given method or invoke callables. If you want to only allow objects with that method to be invokable, then set ``$allow_callable`` to ``false``.
+
 Stack Functions
 ~~~~~~~~~~~~~~~
 
@@ -197,6 +200,8 @@ MwStack push($mw, $sort = 0, $name = null)
     Pushes a new middleware on the stack. The sort determines the priority of the middleware. Middleware pushed at the same priority will be pushed on like a stack.
 MwStack unshift($mw, $sort = 0, $name = null)
     Similar to push except it prepends the stack at the beginning.
+MwStack on($name, $mw, $sort = 0)
+    Simply an alias of ``push``; however, the argument order lends it nicer for adding/replacing named middleware.
 MwStack before($name, $mw, $mw_name = null)
     Inserts a middleware right before the given middleware.
 MwStack after($name, $mw, $mw_name = null)

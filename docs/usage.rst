@@ -91,7 +91,6 @@ The library also comes with a MwStack that allows you to easily build a set of m
 
 .. code-block:: php
 
-
     <?php
 
     use Krak\Mw;
@@ -101,19 +100,23 @@ The library also comes with a MwStack that allows you to easily build a set of m
         return $next($a . 'b');
     })
     ->push(function($a, $next) {
-        return $next($a) . 'c';
+        return $next($a) . 'z';
     }, 0, 'c')
-    // this goes on first
-    ->unshift(function($a, $next) {
-        return $a;
-    }))
+    // replace the c middleware
+    ->on('c', function($a, $next) {
+        return $next($a) . 'c';
+    })
     ->before('c', function($a, $next) {
         return $next($a) . 'x';
     })
     ->after('c', function($a, $next) {
         return $next($a) . 'y';
+    })
+    // this goes on first
+    ->unshift(function($a, $next) {
+        return $a;
     });
 
     $handler = $stack->compose();
     $res = $handler('a');
-    // $res = abxcy
+    assert($res == 'abxcy');

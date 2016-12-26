@@ -40,6 +40,11 @@ class MwStack implements Countable
         return $this->insertEntry(stackEntry($mw, $sort, $name), 'array_unshift');
     }
 
+    /** alias of push to allow for replacing named middleware */
+    public function on($name, $mw, $sort = 0) {
+        return $this->insertEntry(stackEntry($mw, $sort, $name), 'array_push');
+    }
+
     /** insert a middleware before the given middleware */
     public function before($name, $mw, $mw_name = null) {
         if (!array_key_exists($name, $this->name_map)) {

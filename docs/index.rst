@@ -6,7 +6,7 @@
 Welcome to Mw's documentation!
 ==============================
 
-The Mw library is a very flexible framework for converting middleware into handlers. Middleware offer a clean syntax for implementing the [Decorator Pattern](https://en.wikipedia.org/wiki/Decorator_pattern)
+The Mw library is a very flexible framework for converting middleware into handlers. Middleware offer a clean syntax for implementing the `Decorator Pattern <https://en.wikipedia.org/wiki/Decorator_pattern/>`_
 
 Middleware provide a great system for extendable features and the Krak\\Mw library offers a simple yet powerful implementation to create middleware at ease.
 
@@ -37,3 +37,4 @@ Middleware provide a great system for extendable features and the Krak\\Mw libra
    api
    advanced-usage
    troubleshooting
+   cookbook

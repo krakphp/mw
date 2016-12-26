@@ -14,6 +14,24 @@ function id() {
     };
 }
 
+class AppendMw
+{
+    private $c;
+    public function __construct($c) {
+        $this->c = $c;
+    }
+
+    public function handle($s, $next) {
+        return $next($s . $this->c);
+    }
+}
+
+class IdMw {
+    public function handle($s) {
+        return $s;
+    }
+}
+
 describe('Mw', function() {
     describe('#compose', function() {
         it('composes a set of middleware into a handler', function() {
@@ -185,6 +203,38 @@ describe('Mw', function() {
                 'a',
             ], null, mw\pimpleAwareInvoke($c));
             assert('abc' == $handler());
+        });
+    });
+    describe('#methodInvoke', function() {
+        it('will invoke a specific method instead of using a callable', function() {
+            $handler = mw\compose([
+                new IdMw(),
+                new AppendMw('b')
+            ], null, mw\methodInvoke('handle', false));
+
+            assert($handler('a') == 'ab');
+        });
+        it('will allow mixed callable and methods', function() {
+            $handler = mw\compose([
+                id(),
+                new AppendMw('b')
+            ], null, mw\methodInvoke('handle', true));
+
+            assert($handler('a') == 'ab');
+        });
+        it('will throw an exception if it cannot invoke', function() {
+            $handler = mw\compose([
+                id(),
+                new StdClass(),
+                new AppendMw('b')
+            ], null, mw\methodInvoke('handle'));
+
+            try {
+                $handler('a');
+                assert(false);
+            } catch (LogicException $e) {
+                assert(true);
+            }
         });
     });
 });

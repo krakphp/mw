@@ -165,6 +165,23 @@ function pimpleAwareInvoke(\Pimple\Container $c, $invoke = 'call_user_func') {
     };
 }
 
+function methodInvoke($method, $allow_callable = true, $invoke = 'call_user_func') {
+    return function($func, ...$params) use ($method, $invoke, $allow_callable) {
+        if (is_object($func) && method_exists($func, $method)) {
+            return $invoke([$func, $method], ...$params);
+        } else if ($allow_callable && is_callable($func)) {
+            return $invoke($func, ...$params);
+        }
+
+        $msg = "Middleware cannot be invoked because it does not contain the '$method' method";
+        if ($allow_callable) {
+            $msg .= ' and is not a callable.';
+        }
+
+        throw new \LogicException($msg);
+    };
+}
+
 function _splitArgs($params) {
     list($next, $invoke) = array_slice($params, -2);
     return [array_slice($params, 0, -2), $next, $invoke];
