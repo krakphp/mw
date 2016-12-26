@@ -22,11 +22,11 @@ $res = $handler('abc');
 assert($res == 'xABCX');
 ```
 
-![](docs/_static/middleware.png)
+![](doc/_static/middleware.png)
 
 ## Installation
 
-You can install this as composer package at `krak/mw`
+You can install this as a composer package at `krak/mw`
 
 ## Documentation
 
@@ -35,7 +35,7 @@ View them at [http://mw.readthedocs.io/en/latest/](http://mw.readthedocs.io/en/l
 Or build them:
 
 ```bash
-make docs
+make doc
 ```
 
 

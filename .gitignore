@@ -1,4 +1,4 @@
 /vendor
 /composer.lock
 /playground.php
-/docs/_build
+/doc/_build

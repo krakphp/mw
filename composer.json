@@ -3,10 +3,12 @@
     "description": "Middleware Framework",
     "type": "library",
     "license": "MIT",
-    "homepage": "https://gitlab.bighead.net/krak-mw/mw",
+    "homepage": "https://github.com/krakphp/mw",
     "keywords": [
         "middleware",
-        "framework"
+        "compose",
+        "mw",
+        "stack"
     ],
     "authors": [
         {
