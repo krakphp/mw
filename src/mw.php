@@ -25,21 +25,27 @@ use function iter\map,
     ```
 
     @param array $mws The set of middleware to compose
+    @param Context|null $ctx The context for the middleware
     @param callable $last The final handler in case no middleware resolves the arguments
     @return \Closure the composed set of middleware as a handler
 */
-function compose(array $mws, callable $last = null) {
-    $last = $last ?: function() {
+function compose(array $mws, Context $ctx = null, callable $last = null, $link_class = Link::class) {
+    $ctx = $ctx ?: new Context\StdContext();
+    $last = $last ?: new $link_class(function() {
         throw new RuntimeException("No middleware returned a response.");
-    };
+    }, $ctx);
 
-    return array_reduce($mws, function($acc, $mw) {
-        return function(...$params) use ($acc, $mw) {
-            $params[] = $acc;
+    if (!$last instanceof Link) {
+        $last = new $link_class($last, $ctx);
+    }
 
-            return $mw(...$params);
-        };
+    $head = array_reduce($mws, function($acc, $mw) {
+        return $acc->chain($mw);
     }, $last);
+
+    return function(...$params) use ($head) {
+        return $head(...$params);
+    };
 }
 
 /** Group a set of middleware into one. This internally just
@@ -68,9 +74,8 @@ function compose(array $mws, callable $last = null) {
 */
 function group(array $mws) {
     return function(...$params) use ($mws) {
-        list($params, $next) = _splitArgs($params);
-
-        $handle = compose($mws, $next);
+        list($params, $link) = splitArgs($params);
+        $handle = compose($mws, $link->getContext(), $link);
         return $handle(...$params);
     };
 }
@@ -101,7 +106,8 @@ function lazy(callable $mw_gen) {
             $mw = $mw_gen();
         }
 
-        return $mw(...$params);
+        $link = end($params)->chain($mw);
+        return $link(...$params);
     };
 }
 
@@ -121,12 +127,12 @@ function lazy(callable $mw_gen) {
 */
 function filter(callable $mw, callable $predicate) {
     return function(...$all_params) use ($mw, $predicate) {
-        list($params, $next) = _splitArgs($all_params);
+        list($params, $link) = splitArgs($all_params);
         if ($predicate(...$params)) {
-            return $mw(...$all_params);
+            $link = $link->chain($mw);
         }
 
-        return $next(...$params);
+        return $link(...$params);
     };
 }
 
@@ -135,8 +141,8 @@ function stackEntry($mw, $sort = 0, $name = null) {
     return [$mw, $sort, $name];
 }
 
-function stack($name, array $entries = []) {
-    return MwStack::createFromEntries($name, $entries);
+function stack($name, array $entries = [], Context $context = null, $link_class = Link::class) {
+    return MwStack::createFromEntries($name, $entries, $context, $link_class);
 }
 
 /** merges multiple stacks together into a new stack */
@@ -146,7 +152,7 @@ function stackMerge(...$stacks) {
         return $stack->getEntries();
     }, $stacks));
 
-    return MwStack::createFromEntries($stacks[0]->getName(), $entries);
+    return $stacks[0]->withEntries($entries);
 }
 
 /** invokes middleware while checking if the mw is a service defined in the pimple
@@ -178,7 +184,8 @@ function methodInvoke($method, $allow_callable = true, $invoke = 'call_user_func
     };
 }
 
-function _splitArgs($params) {
+/** utility method for splitting the parameters into the params and the next */
+function splitArgs($params) {
     return [array_slice($params, 0, -1), end($params)];
 }
 

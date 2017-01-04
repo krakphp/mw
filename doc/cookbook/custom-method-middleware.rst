@@ -35,6 +35,6 @@ Here's an example using classes with a method of ``handle``
     $handler = mw\compose([
         new IdMw(),
         new AppendMw('b')
-    ], null, mw\methodInvoke('handle'));
+    ], null, new Mw\Context\StdContext(mw\methodInvoke('handle')));
 
     assert($handler('a') == 'ab');

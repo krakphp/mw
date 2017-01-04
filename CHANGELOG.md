@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+
+- Added new Link and Context entities to provide further customization and features
+  to middleware
 
 ## [0.3.3] - 2017-01-03
 ### Changed

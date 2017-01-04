@@ -38,7 +38,6 @@ Or build them:
 make doc
 ```
 
-
 ## Tests and Examples
 
 Run tests via:
