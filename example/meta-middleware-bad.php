@@ -4,15 +4,13 @@ use Krak\Mw;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// **WARNING: These features have been removed on the v0.3 branch due to backwards compatability issues.**
-
 function maybe($mw) {
     return function($i, $next) use ($mw) {
         if ($i >= 10) {
             return $next($i); // forward to next middleware
         }
 
-        // THIS IS WRONG - it isn't using the `$invoke` to call mw
+        // THIS IS WRONG - it isn't chaining the middleware
         return $mw($i, $next);
     };
 }
@@ -29,7 +27,7 @@ $handler = mw\compose([
     maybe(function($i, $next) {
         return $next($i) + 100;
     })
-], null, loggingInvoke());
+], new Mw\Context\StdContext(loggingInvoke()));
 
 echo $handler(1) . PHP_EOL;
 echo $handler(10) . PHP_EOL;

@@ -34,4 +34,8 @@ class PimpleContext implements \ArrayAccess, Mw\Context
     public function offsetUnset($offset) {
         return $this->container->offsetUnset($offset);
     }
+
+    public function getContainer() {
+        return $this->container;
+    }
 }
