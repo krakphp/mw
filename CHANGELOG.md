@@ -6,9 +6,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.3.3] - 2017-01-03
 ### Changed
 
-- Add license year
+- Update license year
 - Reverted changes from 0.3.1 and 0.3.2 due to bc breaks
 
 ## [0.3.2] - 2016-12-26
