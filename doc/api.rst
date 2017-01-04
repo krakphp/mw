@@ -8,7 +8,7 @@ The api documentation is broken up into 2 parts: Middleware documentation and Mi
 Middleware Functions
 ~~~~~~~~~~~~~~~~~~~~
 
-Closure compose(array $mws, callable $last = null, callable $invoke = null)
+Closure compose(array $mws, callable $last = null)
     Composes a set of middleware into a handler.
 
     .. code-block:: php
@@ -30,18 +30,6 @@ Closure compose(array $mws, callable $last = null, callable $invoke = null)
     The middleware stack passed in is executed in LIFO order. So the last middleware will be executed first, and the first middleware will be executed last.
 
     After composing the stack of middleware, the resulting handler will share the same signature as the middleware except that it **won't** have the ``$next``.
-
-    The final parameter is a callable with the same interface as ``call_user_func`` (``function($function_name, ...$params)``) and that is the defaulted value if no ``$invoke`` is set. The ``$invoke`` function is used to actually invoke or call the middleware. This allows for neat things like container aware middleware where a middleware is just a reference to an entry in a service container. See :ref:`Advanced Usage <advanced-usage-custom-invoke>` for more detail.
-
-    Formally, the middleware signature is exactly the same as  the resulting composed handler except that they have 2 additional parameters: ``$next`` and ``$invoke``.
-
-    Handler Signature::
-
-        function(...$params): mixed
-
-    Middleware Signature::
-
-        function(...$params, $next, $invoke): mixed
 
 Closure group(array $mws)
     Creates a new *middleware* composed as one from a middleware stack.
@@ -117,6 +105,8 @@ Closure filter(callable $mw, callable $predicate)
 Invoke Functions
 ~~~~~~~~~~~~~~~~
 
+**WARNING: These features have been removed on the v0.3 branch due to backwards compatability issues.**
+
 Closure pimpleAwareInvoke(Pimple\\Container $c, $invoke = 'call_user_func')
     invokes middleware while checking if the mw is a service defined in the pimple container
 
@@ -126,7 +116,7 @@ Closure methodInvoke(string $method_name, $allow_callable = true, $invoke = 'cal
 Stack Functions
 ~~~~~~~~~~~~~~~
 
-MwStack stack($name, array $entries = [], $invoke = null)
+MwStack stack($name, array $entries = [])
     Creates a MwStack instance. Every stack must have a name which is just a personal identifier for the stack. It's primary use is for errors/exceptions that help the user track down which stack has an issue.
 
     .. code-block:: php
@@ -190,12 +180,10 @@ class MwStack implements Countable
 
 The stack presents a mutable interface into a stack of middleware. Middleware can be added with a name and priority. Only one middleware with a given name may exist. Middleware that are last in the stack will be executed first once the stack is composed.
 
-__construct($name, $invoke = null)
-    Creates the mw stack with a name and an optional invoker. The invoker will be passed along to ``mw\compose``.
+__construct($name)
+    Creates the mw stack with a name.
 string getName()
     returns the name of the middleware
-callable getInvoke()
-    returns the current value set for invoke which could be null or a callable.
 MwStack push($mw, $sort = 0, $name = null)
     Pushes a new middleware on the stack. The sort determines the priority of the middleware. Middleware pushed at the same priority will be pushed on like a stack.
 MwStack unshift($mw, $sort = 0, $name = null)

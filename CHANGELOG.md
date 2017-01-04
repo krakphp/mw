@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+
+- Add license year
+- Reverted changes from 0.3.1 and 0.3.2 due to bc breaks
 
 ## [0.3.2] - 2016-12-26
 ### Added

@@ -4,6 +4,8 @@ use Krak\Mw;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// **WARNING: These features have been removed on the v0.3 branch due to backwards compatability issues.**
+
 function maybe($mw) {
     return function($i, $next) use ($mw) {
         if ($i >= 10) {

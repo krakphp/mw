@@ -26,21 +26,18 @@ use function iter\map,
 
     @param array $mws The set of middleware to compose
     @param callable $last The final handler in case no middleware resolves the arguments
-    @param callable|null $invoke Invokes the middleware
     @return \Closure the composed set of middleware as a handler
 */
-function compose(array $mws, callable $last = null, callable $invoke = null) {
+function compose(array $mws, callable $last = null) {
     $last = $last ?: function() {
         throw new RuntimeException("No middleware returned a response.");
     };
-    $invoke = $invoke ?: 'call_user_func';
 
-    return array_reduce($mws, function($acc, $mw) use ($invoke) {
-        return function(...$params) use ($acc, $mw, $invoke) {
+    return array_reduce($mws, function($acc, $mw) {
+        return function(...$params) use ($acc, $mw) {
             $params[] = $acc;
-            $params[] = $invoke;
 
-            return $invoke($mw, ...$params);
+            return $mw(...$params);
         };
     }, $last);
 }
@@ -71,9 +68,9 @@ function compose(array $mws, callable $last = null, callable $invoke = null) {
 */
 function group(array $mws) {
     return function(...$params) use ($mws) {
-        list($params, $next, $invoke) = _splitArgs($params);
+        list($params, $next) = _splitArgs($params);
 
-        $handle = compose($mws, $next, $invoke);
+        $handle = compose($mws, $next);
         return $handle(...$params);
     };
 }
@@ -104,8 +101,7 @@ function lazy(callable $mw_gen) {
             $mw = $mw_gen();
         }
 
-        $invoke = end($params);
-        return $invoke($mw, ...$params);
+        return $mw(...$params);
     };
 }
 
@@ -125,9 +121,9 @@ function lazy(callable $mw_gen) {
 */
 function filter(callable $mw, callable $predicate) {
     return function(...$all_params) use ($mw, $predicate) {
-        list($params, $next, $invoke) = _splitArgs($all_params);
+        list($params, $next) = _splitArgs($all_params);
         if ($predicate(...$params)) {
-            return $invoke($mw, ...$all_params);
+            return $mw(...$all_params);
         }
 
         return $next(...$params);
@@ -139,8 +135,8 @@ function stackEntry($mw, $sort = 0, $name = null) {
     return [$mw, $sort, $name];
 }
 
-function stack($name, array $entries = [], $invoke = null) {
-    return MwStack::createFromEntries($name, $entries, $invoke);
+function stack($name, array $entries = []) {
+    return MwStack::createFromEntries($name, $entries);
 }
 
 /** merges multiple stacks together into a new stack */
@@ -150,7 +146,7 @@ function stackMerge(...$stacks) {
         return $stack->getEntries();
     }, $stacks));
 
-    return MwStack::createFromEntries($stacks[0]->getName(), $entries, $stacks[0]->getInvoke());
+    return MwStack::createFromEntries($stacks[0]->getName(), $entries);
 }
 
 /** invokes middleware while checking if the mw is a service defined in the pimple
@@ -183,8 +179,7 @@ function methodInvoke($method, $allow_callable = true, $invoke = 'call_user_func
 }
 
 function _splitArgs($params) {
-    list($next, $invoke) = array_slice($params, -2);
-    return [array_slice($params, 0, -2), $next, $invoke];
+    return [array_slice($params, 0, -1), end($params)];
 }
 
 function _filterHeap(SplMinHeap $heap, $predicate) {

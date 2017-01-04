@@ -12,21 +12,16 @@ class MwStack implements Countable
     private $entries;
     private $heap;
     private $name_map;
-    private $invoke;
 
-    public function __construct($name, $invoke = null) {
+    public function __construct($name) {
         $this->name = $name;
         $this->entries = [];
         $this->heap = new SplMinHeap();
         $this->name_map = [];
-        $this->invoke = $invoke;
     }
 
     public function getName() {
         return $this->name;
-    }
-    public function getInvoke() {
-        return $this->invoke;
     }
 
     public function count() {
@@ -165,7 +160,7 @@ class MwStack implements Countable
             throw new \RuntimeException(sprintf('Middleware stack "%s" was not able to return a response. No middleware in the stack returned a response.', $this->getName()));
         };
 
-        return compose($this->normalize(), $last, $this->invoke);
+        return compose($this->normalize(), $last);
     }
 
     public function getEntries() {
@@ -176,8 +171,8 @@ class MwStack implements Countable
         }
     }
 
-    public static function createFromEntries($name, $entries, $invoke = null) {
-        $stack = new self($name, $invoke);
+    public static function createFromEntries($name, $entries) {
+        $stack = new self($name);
         foreach ($entries as $entry) {
             $stack->insertEntry($entry, 'array_push');
         }

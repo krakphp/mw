@@ -141,10 +141,6 @@ describe('Mw', function() {
             $stack = mw\stack('stack');
             assert($stack->getName() == 'stack');
         });
-        it('has an invoke', function() {
-            $stack = mw\stack('stack', [], 'call_user_func');
-            assert($stack->getInvoke() == 'call_user_func');
-        });
         it('throws exception if composing on empty', function() {
             try {
                 mw\stack('stack')->compose();
@@ -172,12 +168,6 @@ describe('Mw', function() {
             $handler = $stack->compose();
             assert($handler('') == 'cba');
         });
-        it('allows custom invoking', function() {
-            $stack = mw\stack('stack', [], function() { return 1; });
-            $stack->push(id());
-            $handler = $stack->compose();
-            assert($handler(2) === 1);
-        });
     });
     describe('#stackMerge', function() {
         it('merges stacks together into a new stack', function() {
@@ -193,48 +183,6 @@ describe('Mw', function() {
             $c = mw\stackMerge($a, $b);
             $handler = $c->compose();
             assert($handler('') == 'cba');
-        });
-    });
-    describe('#pimpleAwareInvoke', function() {
-        it('uses container if the mw is a service definition before invoking', function() {
-            $c = new \Pimple\Container();
-            $c['a'] = function() { return function() {return 'abc';}; };
-            $handler = mw\compose([
-                'a',
-            ], null, mw\pimpleAwareInvoke($c));
-            assert('abc' == $handler());
-        });
-    });
-    describe('#methodInvoke', function() {
-        it('will invoke a specific method instead of using a callable', function() {
-            $handler = mw\compose([
-                new IdMw(),
-                new AppendMw('b')
-            ], null, mw\methodInvoke('handle', false));
-
-            assert($handler('a') == 'ab');
-        });
-        it('will allow mixed callable and methods', function() {
-            $handler = mw\compose([
-                id(),
-                new AppendMw('b')
-            ], null, mw\methodInvoke('handle', true));
-
-            assert($handler('a') == 'ab');
-        });
-        it('will throw an exception if it cannot invoke', function() {
-            $handler = mw\compose([
-                id(),
-                new StdClass(),
-                new AppendMw('b')
-            ], null, mw\methodInvoke('handle'));
-
-            try {
-                $handler('a');
-                assert(false);
-            } catch (LogicException $e) {
-                assert(true);
-            }
         });
     });
 });

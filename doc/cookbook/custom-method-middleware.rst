@@ -2,6 +2,8 @@
 Custom Method Middleware
 ========================
 
+**WARNING: This feature has been removed on the v0.3 branch due to backwards compatability issues.**
+
 If you want to use middleware that are class based and use a method other than ``__invoke``, you need to use the ``methodInvoke`` invoker.
 
 Here's an example using classes with a method of ``handle``
