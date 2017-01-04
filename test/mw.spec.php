@@ -89,6 +89,12 @@ describe('Mw', function() {
             assert($handler() == 1 && $handler() == 1);
         });
     });
+    describe('#splitArgs', function() {
+        it('splits args between params and middleware', function() {
+            list($args, $next) = mw\splitArgs([1,2,3]);
+            assert($args == [1,2] && $next == 3);
+        });
+    });
     describe('#_filterHeap', function() {
         it('filters a min heap', function() {
             $heap = new SplMinHeap();

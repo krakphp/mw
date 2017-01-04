@@ -186,8 +186,8 @@ function methodInvoke($method, $allow_callable = true, $invoke = 'call_user_func
 }
 
 /** utility method for splitting the parameters into the params and the next */
-function splitArgs($params) {
-    return [array_slice($params, 0, -1), end($params)];
+function splitArgs(array $args) {
+    return [array_slice($args, 0, -1), end($args)];
 }
 
 function _filterHeap(SplMinHeap $heap, $predicate) {

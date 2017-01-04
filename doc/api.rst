@@ -179,6 +179,26 @@ MwStack stackMerge(...$stacks)
             ->push($mw2)
             ->push($mw4, 0, 'mw')
 
+Utility Functions
+~~~~~~~~~~~~~~~~~
+
+array splitArgs(array $args)
+    Splits arguments between the parameters and middleware.
+
+    .. code-block:: php
+
+        <?php
+
+        use Krak\Mw
+
+        function middleware() {
+            return function(...$args) {
+                list($args, $next) = Mw\splitArgs($args);
+                return $next(...$args);
+            };
+        }
+    
+
 class MwStack implements Countable
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -245,6 +265,7 @@ The default context for the mw system. It simply holds the a value to the invoke
 __construct($invoke = 'call_user_func')
 
 class Context\\PimpleContext implements Context
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Provides nice pimple integeration by allowing the context to act like a pimple container and it provides pimple invocation by default.
 
