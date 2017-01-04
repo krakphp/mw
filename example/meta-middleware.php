@@ -4,16 +4,16 @@ use Krak\Mw;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// **WARNING: These features have been removed on the v0.3 branch due to backwards compatability issues.**
-
 // maybe middleware will only invoke the middleware if the parameter is < 10
 function maybe($mw) {
-    return function($i, $next, $invoke) use ($mw) {
-        if ($i >= 10) {
-            return $next($i); // forward to next middleware
+    return function($i, $next) use ($mw) {
+        if ($i < 10) {
+            /** NOTE - this is the crucial part where we prepend the `$mw` onto the link. Now, when we execute `$next`,
+                the `$mw` func will be first to be executed */
+            $next = $next->chain($mw);
         }
 
-        return $invoke($mw, $i, $next, $invoke);
+        return $next($i);
     };
 }
 
@@ -29,7 +29,7 @@ $handler = mw\compose([
     maybe(function($i, $next) {
         return $next($i) + 100;
     })
-], null, loggingInvoke());
+], new Mw\Context\StdContext(loggingInvoke()));
 
 echo $handler(1) . PHP_EOL;
 echo $handler(10) . PHP_EOL;

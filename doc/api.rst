@@ -8,7 +8,7 @@ The api documentation is broken up into 2 parts: Middleware documentation and Mi
 Middleware Functions
 ~~~~~~~~~~~~~~~~~~~~
 
-Closure compose(array $mws, callable $last = null)
+Closure compose(array $mws, Context $ctx = null, callable $last = null, $link_class = Link::class)
     Composes a set of middleware into a handler.
 
     .. code-block:: php
@@ -30,6 +30,12 @@ Closure compose(array $mws, callable $last = null)
     The middleware stack passed in is executed in LIFO order. So the last middleware will be executed first, and the first middleware will be executed last.
 
     After composing the stack of middleware, the resulting handler will share the same signature as the middleware except that it **won't** have the ``$next``.
+
+    ``$ctx`` will default to ``Context\StdContext`` if none is supplied, and it will be the context that is passed to the start link (see: :doc:`advanced-usage` for more details).
+
+    ``$last`` represents the last middleware to be executed if no other middleware handle the parameters. This typically will throw an exception in that case, but it might be advantageous to set this to something else for your needs.
+
+    ``$link_class`` is the class that will be constructed for the middleware link. It must be or extend ``Krak\Mw\Link`` (see: :doc:`advanced-usage` for more details).
 
 Closure group(array $mws)
     Creates a new *middleware* composed as one from a middleware stack.
@@ -105,8 +111,6 @@ Closure filter(callable $mw, callable $predicate)
 Invoke Functions
 ~~~~~~~~~~~~~~~~
 
-**WARNING: These features have been removed on the v0.3 branch due to backwards compatability issues.**
-
 Closure pimpleAwareInvoke(Pimple\\Container $c, $invoke = 'call_user_func')
     invokes middleware while checking if the mw is a service defined in the pimple container
 
@@ -116,8 +120,8 @@ Closure methodInvoke(string $method_name, $allow_callable = true, $invoke = 'cal
 Stack Functions
 ~~~~~~~~~~~~~~~
 
-MwStack stack($name, array $entries = [])
-    Creates a MwStack instance. Every stack must have a name which is just a personal identifier for the stack. It's primary use is for errors/exceptions that help the user track down which stack has an issue.
+MwStack stack($name, array $entries = [], Context $ctx = null, $link_class = Link::class)
+    Creates a MwStack instance. Every stack must have a name which is just a personal identifier for the stack. It's primary use is for errors/exceptions that help the user track down which stack has an issue. ``$ctx`` and ``$link_class`` are forwarded to the MwStack constructor.
 
     .. code-block:: php
 
@@ -175,13 +179,33 @@ MwStack stackMerge(...$stacks)
             ->push($mw2)
             ->push($mw4, 0, 'mw')
 
+Utility Functions
+~~~~~~~~~~~~~~~~~
+
+array splitArgs(array $args)
+    Splits arguments between the parameters and middleware.
+
+    .. code-block:: php
+
+        <?php
+
+        use Krak\Mw
+
+        function middleware() {
+            return function(...$args) {
+                list($args, $next) = Mw\splitArgs($args);
+                return $next(...$args);
+            };
+        }
+    
+
 class MwStack implements Countable
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The stack presents a mutable interface into a stack of middleware. Middleware can be added with a name and priority. Only one middleware with a given name may exist. Middleware that are last in the stack will be executed first once the stack is composed.
 
-__construct($name)
-    Creates the mw stack with a name.
+__construct($name, Context $ctx = null, $link_class = Link::class)
+    Creates the mw stack with a name. The ``$ctx`` and ``$link_class`` are forwarded to ``mw\compose`` once the stack is composed.
 string getName()
     returns the name of the middleware
 MwStack push($mw, $sort = 0, $name = null)
@@ -210,3 +234,42 @@ Generator getEntries()
     Yields the raw stack entries in the order they were added.
 MwStack static createFromEntries($name, $entries)
     Creates a stack with a set of entries. ``mw\stack`` internally calls this.
+
+class Link
+~~~~~~~~~~
+
+Represents a link in the middleware chain. A link instance is passed to every middleware as the last parameter which allows the next middleware to be called. See :doc:`advanced-usage` for more details.
+
+__construct($mw, Context $ctx, Link $next = null)
+    Creates a link. If ``$next`` is provided, then the created link will be the new head of that linked list.
+__invoke(...$params)
+    Invokes the middleware. It forwards the params to the middleware and additionaly adds the next link to the end of argument list for the middleware.
+chain($mw)
+    Creates a new link to be the head of the current list of links. The context is copied from the current link.
+getContext()
+    returns the context instance apart of the link.
+
+interface Context
+~~~~~~~~~~~~~~~~~
+
+Represents the middleware context utilized by the internal system.
+
+getInvoke()
+    Returns the invoker configured for this context.
+
+class Context\\StdContext implements Context
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The default context for the mw system. It simply holds the a value to the invoker for custom invocation.
+
+__construct($invoke = 'call_user_func')
+
+class Context\\PimpleContext implements Context
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Provides nice pimple integeration by allowing the context to act like a pimple container and it provides pimple invocation by default.
+
+View the :doc:`cookbook/pimple-middleware` for example on this.
+
+__construct(Container $container, $invoke = null)
+    The pimple contianer and an optional invoker if you don't want to use the ``pimpleAwareInvoke``

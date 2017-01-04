@@ -34,7 +34,7 @@ Middleware provide a great system for extendable features and the Krak\\Mw libra
    :maxdepth: 2
 
    usage
-   api
    advanced-usage
-   troubleshooting
    cookbook
+   api
+   troubleshooting

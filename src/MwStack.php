@@ -9,12 +9,16 @@ use Countable,
 class MwStack implements Countable
 {
     private $name;
+    private $ctx;
+    private $link_class;
     private $entries;
     private $heap;
     private $name_map;
 
-    public function __construct($name) {
+    public function __construct($name, Context $ctx = null, $link_class = Link::class) {
         $this->name = $name;
+        $this->ctx = $ctx;
+        $this->link_class = $link_class;
         $this->entries = [];
         $this->heap = new SplMinHeap();
         $this->name_map = [];
@@ -160,7 +164,11 @@ class MwStack implements Countable
             throw new \RuntimeException(sprintf('Middleware stack "%s" was not able to return a response. No middleware in the stack returned a response.', $this->getName()));
         };
 
-        return compose($this->normalize(), $last);
+        return compose($this->normalize(), $this->ctx, $last, $this->link_class);
+    }
+
+    public function withEntries($entries) {
+        return static::createFromEntries($this->name, $entries, $this->ctx, $this->link_class);
     }
 
     public function getEntries() {
@@ -171,8 +179,8 @@ class MwStack implements Countable
         }
     }
 
-    public static function createFromEntries($name, $entries) {
-        $stack = new self($name);
+    public static function createFromEntries($name, $entries, Context $ctx = null, $link_class = Link::class) {
+        $stack = new static($name, $ctx, $link_class);
         foreach ($entries as $entry) {
             $stack->insertEntry($entry, 'array_push');
         }

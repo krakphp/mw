@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2017-01-04
+### Changed
+
+- Made `splitArgs` a public function
+- Update documentation to reflect new API and changes.
+- Updated `mw\compose` algorithm to use the Link as a linked list instead of the
+  nested closures.
+- Re-implemented custom invocation via the new Context system.
+- Re-designed the meta middleware system with the Link system and added documentation
+
+### Added
+
+- Added new Link and Context entities to provide further customization and features
+  to middleware
+- Added Context\\PimpleContext to provide better pimple integration
+
 ## [0.3.3] - 2017-01-03
 ### Changed
 

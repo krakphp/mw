@@ -25,6 +25,6 @@ class IdMw {
 $handler = mw\compose([
     new IdMw(),
     new AppendMw('b')
-], null, mw\methodInvoke('handle'));
+], new Mw\Context\StdContext(mw\methodInvoke('handle')));
 
 assert($handler('a') == 'ab');
