@@ -167,6 +167,16 @@ class MwStack implements Countable
         return compose($this->normalize(), $this->ctx, $last, $this->link_class);
     }
 
+    public function withContext(Context $ctx) {
+        $stack = clone $this;
+        $stack->ctx = $ctx;
+        return $stack;
+    }
+    public function withLinkClass($link_class) {
+        $stack = clone $this;
+        $stack->link_class = $link_class;
+        return $stack;
+    }
     public function withEntries($entries) {
         return static::createFromEntries($this->name, $entries, $this->ctx, $this->link_class);
     }

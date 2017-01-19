@@ -32,6 +32,8 @@ class IdMw {
     }
 }
 
+class MyLink extends Mw\Link {}
+
 describe('Mw', function() {
     describe('#compose', function() {
         it('composes a set of middleware into a handler', function() {
@@ -179,6 +181,21 @@ describe('Mw', function() {
             $stack->push(id());
             $handler = $stack->compose();
             assert($handler(2) === 1);
+        });
+        it('allows you to change context', function() {
+            $stack = mw\stack('stack')->withContext(new Mw\Context\StdContext(function() { return 1; }));
+            $stack->push(id());
+            $handler = $stack->compose();
+            assert($handler(2) === 1);
+        });
+        it('allows you to change link class', function() {
+            $stack = mw\stack('stack')->withLinkClass(MyLink::class);
+            $stack->push(function($id, $next) {
+                assert($next instanceof MyLink);
+                return;
+            });
+            $handler = $stack->compose();
+            $handler(1);
         });
     });
     describe('#stackMerge', function() {

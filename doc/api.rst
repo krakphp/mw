@@ -197,7 +197,7 @@ array splitArgs(array $args)
                 return $next(...$args);
             };
         }
-    
+
 
 class MwStack implements Countable
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -232,6 +232,12 @@ Closure compose(callable $last = null)
     Composes the stack into a handler.
 Generator getEntries()
     Yields the raw stack entries in the order they were added.
+MwStack withContext(Context $ctx)
+    Creates a clone of the current stack with an updated context
+MwStack withLinkClass($class)
+    Creates a clone of the current stack with an updated link class
+MwStack withEntries($entries)
+    Creates a clone of the current stack with updated entries.
 MwStack static createFromEntries($name, $entries)
     Creates a stack with a set of entries. ``mw\stack`` internally calls this.
 
