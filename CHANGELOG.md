@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## Added
+## [0.4.1] - 2017-01-19
+### Added
 
 - Added `withContext` and `withLinkClass` options to MwStack.
 
