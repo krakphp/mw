@@ -232,6 +232,8 @@ Closure compose(callable $last = null)
     Composes the stack into a handler.
 Generator getEntries()
     Yields the raw stack entries in the order they were added.
+MwStack withName($name)
+    Creates a clone of the current stack with an updated name.
 MwStack withContext(Context $ctx)
     Creates a clone of the current stack with an updated context
 MwStack withLinkClass($class)

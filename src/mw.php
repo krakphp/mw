@@ -142,7 +142,7 @@ function stackEntry($mw, $sort = 0, $name = null) {
     return [$mw, $sort, $name];
 }
 
-function stack($name, array $entries = [], Context $context = null, $link_class = Link::class) {
+function stack($name = null, array $entries = [], Context $context = null, $link_class = Link::class) {
     return MwStack::createFromEntries($name, $entries, $context, $link_class);
 }
 

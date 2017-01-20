@@ -15,7 +15,7 @@ class MwStack implements Countable
     private $heap;
     private $name_map;
 
-    public function __construct($name, Context $ctx = null, $link_class = Link::class) {
+    public function __construct($name = null, Context $ctx = null, $link_class = Link::class) {
         $this->name = $name;
         $this->ctx = $ctx;
         $this->link_class = $link_class;
@@ -167,6 +167,11 @@ class MwStack implements Countable
         return compose($this->normalize(), $this->ctx, $last, $this->link_class);
     }
 
+    public function withName($name) {
+        $stack = clone $this;
+        $stack->name = $name;
+        return $stack;
+    }
     public function withContext(Context $ctx) {
         $stack = clone $this;
         $stack->ctx = $ctx;
@@ -189,7 +194,7 @@ class MwStack implements Countable
         }
     }
 
-    public static function createFromEntries($name, $entries, Context $ctx = null, $link_class = Link::class) {
+    public static function createFromEntries($name = null, $entries, Context $ctx = null, $link_class = Link::class) {
         $stack = new static($name, $ctx, $link_class);
         foreach ($entries as $entry) {
             $stack->insertEntry($entry, 'array_push');

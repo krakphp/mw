@@ -182,6 +182,10 @@ describe('Mw', function() {
             $handler = $stack->compose();
             assert($handler(2) === 1);
         });
+        it('allows you to change name', function() {
+            $stack = mw\stack()->withName('Stack');
+            assert($stack->getName() == 'Stack');
+        });
         it('allows you to change context', function() {
             $stack = mw\stack('stack')->withContext(new Mw\Context\StdContext(function() { return 1; }));
             $stack->push(id());

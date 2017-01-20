@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+
+- Added `withName` func to MwStack
+- Made the `$name` parameter optional in the MwStack
 
 ## [0.4.1] - 2017-01-19
 ### Added
