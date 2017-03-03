@@ -14,6 +14,21 @@ function id() {
     };
 }
 
+class ArrayContainer implements Psr\Container\ContainerInterface
+{
+    private $data;
+    public function __construct(array $data) {
+        $this->data = $data;
+    }
+
+    public function get($id) {
+        return $this->data[$id];
+    }
+    public function has($id) {
+        return array_key_exists($id, $this->data);
+    }
+}
+
 class AppendMw
 {
     private $c;
@@ -48,6 +63,20 @@ describe('Mw', function() {
 
             $res = $handler('a', 'c');
             assert($res === 'abcde');
+        });
+    });
+    describe('#composer', function() {
+        it('creates a compose function', function() {
+            $compose = mw\composer(new Mw\Context\StdContext(), MyLink::class);
+            $handler = $compose([
+                function($s, $next) {
+                    return $next instanceof MyLink;
+                },
+                function($s, $next) {
+                    return $next($s);
+                },
+            ]);
+            assert($handler('a'));
         });
     });
     describe('#group', function() {
@@ -269,6 +298,20 @@ describe('Mw', function() {
                     return $v + $next->getContext()['a'];
                 }
             ], new Mw\Context\PimpleContext($container));
+            assert($handler(1) == 2);
+        });
+    });
+    describe('Context\ContainerContext', function() {
+        it('allows container access via context', function() {
+            $container = new ArrayContainer([
+                'a' => 1,
+            ]);
+            $compose = mw\composer(new Mw\Context\ContainerContext($container), Mw\Link\ContainerLink::class);
+            $handler = $compose([
+                function($v, $next) {
+                    return $v + $next['a'];
+                }
+            ]);
             assert($handler(1) == 2);
         });
     });

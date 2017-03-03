@@ -37,6 +37,19 @@ Closure compose(array $mws, Context $ctx = null, callable $last = null, $link_cl
 
     ``$link_class`` is the class that will be constructed for the middleware link. It must be or extend ``Krak\Mw\Link`` (see: :doc:`advanced-usage` for more details).
 
+Closure composer(Context $ctx, $link_class = Link::class)
+    Creates a composer function that accepts a set of middleware and composes a handler.
+
+    .. code-block:: php
+
+        <?php
+
+        $compose = mw\composer();
+        $handler = $compose([
+            mw1(),
+            mw2()
+        ]);
+
 Closure group(array $mws)
     Creates a new *middleware* composed as one from a middleware stack.
 
@@ -113,6 +126,9 @@ Invoke Functions
 
 Closure pimpleAwareInvoke(Pimple\\Container $c, $invoke = 'call_user_func')
     invokes middleware while checking if the mw is a service defined in the pimple container
+
+Closure containerAwareInvoke(Psr\\Container\\ContainerInterface $c, $invoke = 'call_user_func')
+    invokes middleware while checking if the mw is a service defined in the psr container.
 
 Closure methodInvoke(string $method_name, $allow_callable = true, $invoke = 'call_user_func')
     This will convert the middleware into a callable array like ``[$obj, $method_name]`` and invoke it. The ``$allow_callable`` parameter will allow the stack to either invoke objects with the given method or invoke callables. If you want to only allow objects with that method to be invokable, then set ``$allow_callable`` to ``false``.
@@ -257,6 +273,11 @@ chain($mw)
 getContext()
     returns the context instance apart of the link.
 
+class Link\\ContainerLink
+~~~~~~~~~~~~~~~~~~~
+
+Extends the Link class and implements the Psr\\Container\\ContainerInterface and ArrayAccess. Keep in mind that it offers read-only access, so setting and deleting offsets will cause an exception to be thrown.
+
 interface Context
 ~~~~~~~~~~~~~~~~~
 
@@ -280,4 +301,14 @@ Provides nice pimple integeration by allowing the context to act like a pimple c
 View the :doc:`cookbook/pimple-middleware` for example on this.
 
 __construct(Container $container, $invoke = null)
-    The pimple contianer and an optional invoker if you don't want to use the ``pimpleAwareInvoke``
+    The pimple container and an optional invoker if you don't want to use the ``pimpleAwareInvoke``
+
+class Context\\ContainerContext implements Context
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Provides psr container integeration by allowing the context to act like a psr container and it provides container invocation by default.
+
+View the :doc:`cookbook/container-middleware` for example on this.
+
+__construct(ContainerInterface $container, $invoke = null)
+    The psr container and an optional invoker if you don't want to use the ``containerAwareInvoke``

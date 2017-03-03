@@ -3,7 +3,8 @@
 namespace Krak\Mw;
 
 use RuntimeException,
-    SplMinHeap;
+    SplMinHeap,
+    Psr\Container\ContainerInterface;
 
 use function iter\map,
     iter\chain;
@@ -46,6 +47,14 @@ function compose(array $mws, Context $ctx = null, callable $last = null, $link_c
 
     return function(...$params) use ($head) {
         return $head(...$params);
+    };
+}
+
+/** creates a composer function */
+function composer(Context $ctx = null, $link_class = Link::class) {
+    $ctx = $ctx ?: new Context\StdContext();
+    return function(array $mws) use ($ctx, $link_class) {
+        return compose($mws, $ctx, null, $link_class);
     };
 }
 
@@ -162,6 +171,17 @@ function pimpleAwareInvoke(\Pimple\Container $c, $invoke = 'call_user_func') {
     return function($func, ...$params) use ($c, $invoke) {
         if (is_string($func) && isset($c[$func])) {
             $func = $c[$func];
+        }
+
+        return $invoke($func, ...$params);
+    };
+}
+
+/** invokes a middleware checking if the mw is a service defined in a PSR Container */
+function containerAwareInvoke(ContainerInterface $c, $invoke = 'call_user_func') {
+    return function($func, ...$params) use ($c, $invoke) {
+        if (is_string($func) && $c->has($func)) {
+            $func = $c->get($func);
         }
 
         return $invoke($func, ...$params);
