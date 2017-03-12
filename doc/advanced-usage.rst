@@ -15,12 +15,12 @@ Each middleware is invoked with a ``Mw\Context`` instance. This is responsible f
 
     use Krak\Mw;
 
-    $handle = mw\compose([
+    $handle = Mw\compose([
         function($v, Mw\Link $next) {
             $ctx = $next->getContext();
             return 1;
         }
-    ], new Krak\Mw\Context\StdContext());
+    ], new Mw\Context\StdContext());
 
 You can configure or pass in any context as long as it implements the ``Mw\Context`` interface. Currently, the context provides an invoker via the ``getInvoke`` method. This allows custom invocation of the middleware as shown in the :doc:`cookbook`.
 

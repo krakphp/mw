@@ -6,5 +6,4 @@ The cookbook provides documentation on how to extend or utilize the mw system in
 
 - :doc:`cookbook/custom-link-class`
 - :doc:`cookbook/custom-method-middleware`
-- :doc:`cookbook/pimple-middleware`
 - :doc:`cookbook/container-middleware`

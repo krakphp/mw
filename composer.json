@@ -22,6 +22,7 @@
         "psr/container": "^1.0"
     },
     "require-dev": {
+        "krak/cargo": "^0.2.0",
         "peridot-php/peridot": "^1.18",
         "pimple/pimple": "^3.0"
     },

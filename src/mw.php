@@ -27,23 +27,16 @@ use function iter\map,
 
     @param array $mws The set of middleware to compose
     @param Context|null $ctx The context for the middleware
-    @param callable $last The final handler in case no middleware resolves the arguments
     @param string $link_class The class to use for linking the middleware
     @return \Closure the composed set of middleware as a handler
 */
-function compose(array $mws, Context $ctx = null, callable $last = null, $link_class = Link::class) {
-    $ctx = $ctx ?: new Context\StdContext();
-    $last = $last ?: new $link_class(function() {
-        throw new RuntimeException("No middleware returned a response.");
-    }, $ctx);
-
-    if (!$last instanceof Link) {
-        $last = new $link_class($last, $ctx);
+function compose(array $mws, Context $ctx = null, $link_class = Link::class) {
+    if (!count($mws)) {
+        throw new \InvalidArgumentException("Cannot compose an empty set of middleware.");
     }
 
-    $head = array_reduce($mws, function($acc, $mw) {
-        return $acc->chain($mw);
-    }, $last);
+    $last = new $link_class($mws[0], $ctx ?: new Context\StdContext());
+    $head = $last->chains($mws);
 
     return function(...$params) use ($head) {
         return $head(...$params);
@@ -54,7 +47,15 @@ function compose(array $mws, Context $ctx = null, callable $last = null, $link_c
 function composer(Context $ctx = null, $link_class = Link::class) {
     $ctx = $ctx ?: new Context\StdContext();
     return function(array $mws) use ($ctx, $link_class) {
-        return compose($mws, $ctx, null, $link_class);
+        return compose($mws, $ctx, $link_class);
+    };
+}
+
+/** forces a guard in the composed middleware */
+function guardedComposer($composer, $msg) {
+    return function(array $mws) use ($composer, $msg) {
+        array_unshift($mws, guard($msg));
+        return $composer($mws);
     };
 }
 
@@ -85,8 +86,8 @@ function composer(Context $ctx = null, $link_class = Link::class) {
 function group(array $mws) {
     return function(...$params) use ($mws) {
         list($params, $link) = splitArgs($params);
-        $handle = compose($mws, $link->getContext(), $link);
-        return $handle(...$params);
+        $next = $link->chains($mws);
+        return $next(...$params);
     };
 }
 
@@ -115,8 +116,8 @@ function lazy(callable $mw_gen) {
         if (!$mw) {
             $mw = $mw_gen();
         }
-
-        $link = end($params)->chain($mw);
+        list($params, $link) = splitArgs($params);
+        $link = $link->chain($mw);
         return $link(...$params);
     };
 }
@@ -146,34 +147,27 @@ function filter(callable $mw, callable $predicate) {
     };
 }
 
-/** higher the sort, the sooner it will execute in the stack */
-function stackEntry($mw, $sort = 0, $name = null) {
-    return [$mw, $sort, $name];
+/** returns the parameters itself. If it's a multi-param middleware, it'll
+    return the params as a tuple, else it'll return the single value */
+function identity() {
+    return function(...$params) {
+        return count($params) > 2 ? array_slice($params, 0, -1) : $params[0];
+    };
 }
 
-function stack($name = null, array $entries = [], Context $context = null, $link_class = Link::class) {
-    return MwStack::createFromEntries($name, $entries, $context, $link_class);
+/** always return the value passed in */
+function stub($ret) {
+    return function() use ($ret) {
+        return $ret;
+    };
 }
 
-/** merges multiple stacks together into a new stack */
-function stackMerge(...$stacks) {
-    /** merge stacks together */
-    $entries = chain(...map(function($stack) {
-        return $stack->getEntries();
-    }, $stacks));
-
-    return $stacks[0]->withEntries($entries);
-}
-
-/** invokes middleware while checking if the mw is a service defined in the pimple
-    container */
-function pimpleAwareInvoke(\Pimple\Container $c, $invoke = 'call_user_func') {
-    return function($func, ...$params) use ($c, $invoke) {
-        if (is_string($func) && isset($c[$func])) {
-            $func = $c[$func];
-        }
-
-        return $invoke($func, ...$params);
+/** Will throw an error if this middleware is every reached. Designed to be a failsafe
+    and provide a helpful error message when a composed stack of middleware fail to
+    return a result. */
+function guard($msg) {
+    return function() use ($msg) {
+        throw new Exception\NoResultException($msg);
     };
 }
 
@@ -210,12 +204,6 @@ function splitArgs(array $args) {
     return [array_slice($args, 0, -1), end($args)];
 }
 
-function _filterHeap(SplMinHeap $heap, $predicate) {
-    $new_heap = new SplMinHeap();
-    foreach ($heap as $v) {
-        if ($predicate($v)) {
-            $new_heap->insert($v);
-        }
-    }
-    return $new_heap;
+function stack(array $entries = []) {
+    return new Stack($entries);
 }

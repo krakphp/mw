@@ -126,32 +126,20 @@ describe('Mw', function() {
             assert($args == [1,2] && $next == 3);
         });
     });
-    describe('#_filterHeap', function() {
-        it('filters a min heap', function() {
-            $heap = new SplMinHeap();
-            $heap->insert(3);
-            $heap->insert(2);
-            $heap->insert(1);
-
-            $heap = mw\_filterHeap($heap, function($v) { return $v != 2; });
-            $vals = iterator_to_array($heap);
-            assert(current($vals) == 1 && end($vals) == 3);
-        });
-    });
-    describe('MwStack', function() {
+    describe('Stack', function() {
         it('maintains a stack of middleware with priority', function() {
-            $stack = mw\stack('stack');
+            $stack = mw\stack();
             $stack->push(append('a'), 10);
             $stack->push(append('b'), 5);
             $stack->push(append('0'), 5);
             $stack->push(id())->push(append('c'));
             $stack->pop(5);
 
-            $handler = $stack->compose();
+            $handler = mw\compose([$stack]);
             assert($handler('') == 'abc');
         });
         it('allows shifting and unshifting', function() {
-            $stack = mw\stack('stack');
+            $stack = mw\stack();
             $stack->unshift(append('b'));
             $stack->unshift(append('a'), 1);
             $stack->unshift(append('c'));
@@ -159,102 +147,30 @@ describe('Mw', function() {
             $stack->shift();
             $stack->unshift(id());
 
-            $handler = $stack->compose();
+            $handler = mw\compose([$stack]);
 
             assert($handler('') == 'abc');
         });
         it('can add elements before or after other middleware', function() {
-            $stack = mw\stack('stack');
-            $stack->push(id());
+            $stack = mw\stack();
+            $stack->push(id(), -1);
             $stack->push(append('a'));
             $stack->push(append('c'), 0, 'mw');
             $stack->push(append('e'));
             $stack->before('mw', append('b'));
             $stack->after('mw', append('d'));
-            $handler = $stack->compose();
-            assert($handler('') == 'edcba');
-        });
-        it('has a name', function() {
-            $stack = mw\stack('stack');
-            assert($stack->getName() == 'stack');
-        });
-        it('throws exception if composing on empty', function() {
-            try {
-                mw\stack('stack')->compose();
-                assert(false);
-            } catch (RuntimeException $e) {
-                assert(strpos($e->getMessage(), 'Middleware stack "stack" is empty') === 0);
-            }
-        });
-        it('throws exception if no middleware resolve', function() {
-            try {
-                $handler = mw\stack('stack')->push(function($next) { $next(); })->compose();
-                $handler();
-                assert(false);
-            } catch (RuntimeException $e) {
-                assert(strpos($e->getMessage(), 'Middleware stack "stack" was not able to return') === 0);
-            }
+            $handler = mw\compose([$stack]);
+            assert($handler('') == 'decab');
         });
         it('replaces an entry if it is pushed with the same name', function() {
-            $stack = mw\stack('stack');
+            $stack = mw\stack();
             $stack->push(id())
                 ->push(append('a'))
                 ->push(append('d'), 0, 'mw')
                 ->push(append('c'))
                 ->push(append('b'), 0, 'mw');
-            $handler = $stack->compose();
+            $handler = mw\compose([$stack]);
             assert($handler('') == 'cba');
-        });
-        it('allows custom context', function() {
-            $stack = mw\stack('stack', [], new Mw\Context\StdContext(function() { return 1; }));
-            $stack->push(id());
-            $handler = $stack->compose();
-            assert($handler(2) === 1);
-        });
-        it('allows you to change name', function() {
-            $stack = mw\stack()->withName('Stack');
-            assert($stack->getName() == 'Stack');
-        });
-        it('allows you to change context', function() {
-            $stack = mw\stack('stack')->withContext(new Mw\Context\StdContext(function() { return 1; }));
-            $stack->push(id());
-            $handler = $stack->compose();
-            assert($handler(2) === 1);
-        });
-        it('allows you to change link class', function() {
-            $stack = mw\stack('stack')->withLinkClass(MyLink::class);
-            $stack->push(function($id, $next) {
-                assert($next instanceof MyLink);
-                return;
-            });
-            $handler = $stack->compose();
-            $handler(1);
-        });
-    });
-    describe('#stackMerge', function() {
-        it('merges stacks together into a new stack', function() {
-            $a = mw\stack('stack', [
-                mw\stackEntry(id()),
-                mw\stackEntry(append('a')),
-                mw\stackEntry(append('b')),
-                mw\stackEntry(append('d'), 0, 'mw')
-            ]);
-            $b = mw\stack('stack', [
-                mw\stackEntry(append('c'), 0, 'mw'),
-            ]);
-            $c = mw\stackMerge($a, $b);
-            $handler = $c->compose();
-            assert($handler('') == 'cba');
-        });
-    });
-    describe('#pimpleAwareInvoke', function() {
-        it('uses container if the mw is a service definition before invoking', function() {
-            $c = new \Pimple\Container();
-            $c['a'] = function() { return function() {return 'abc';}; };
-            $handler = mw\compose([
-                'a',
-            ], new Mw\Context\StdContext(mw\pimpleAwareInvoke($c)));
-            assert('abc' == $handler());
         });
     });
     describe('#methodInvoke', function() {
@@ -287,18 +203,6 @@ describe('Mw', function() {
             } catch (LogicException $e) {
                 assert(true);
             }
-        });
-    });
-    describe('Context\PimpleContext', function() {
-        it('allows pimple access via context', function() {
-            $container = new Pimple\Container();
-            $container['a'] = 1;
-            $handler = mw\compose([
-                function($v, $next) {
-                    return $v + $next->getContext()['a'];
-                }
-            ], new Mw\Context\PimpleContext($container));
-            assert($handler(1) == 2);
         });
     });
     describe('Context\ContainerContext', function() {

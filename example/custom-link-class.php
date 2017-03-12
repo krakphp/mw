@@ -16,6 +16,6 @@ $handler = mw\compose([
         $next->log('hi');
         return 1;
     }
-], null, null, LoggingLink::class);
+], null, LoggingLink::class);
 
 assert($handler(0) == 1);

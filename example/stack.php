@@ -26,6 +26,6 @@ $stack->push(function($a, $next) {
     return $a;
 });
 
-$handler = $stack->compose();
+$handler = mw\compose([$stack]);
 $res = $handler('a');
 assert($res == 'abxcy');

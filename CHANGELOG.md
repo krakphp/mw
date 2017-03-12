@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2017-03-11
+### Added
+
+- `composer` func which creates composer functions that accept an array of middleware
+  and compose into a handler.
+- `guard` a generic middleware that will throw an exception when invoked to indicate an
+  error in logic.
+- `guardedComposer` decorator to automatically add guards when composing a middleware stack
+
+### Changed
+
+- Moved `MwStack` to simply `Stack` and simplified the API
+- Removed Pimple integration in favor for the PSR container.
+
 ## [0.4.2] - 2017-01-19
 ### Added
 

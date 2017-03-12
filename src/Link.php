@@ -17,18 +17,26 @@ class Link
     }
 
     public function __invoke(...$params) {
+        if (!$this->next) {
+            throw new Exception\NoResultException('Cannot invoke last middleware in chain. No middleware returned a result.');
+        }
         $mw = $this->mw;
         $invoke = $this->ctx->getInvoke();
         $params[] = $this->next;
         return $invoke($mw, ...$params);
-
-        return $this->invoke($this->mw, ...$params);
     }
 
     /** Chains a middleware to the current link */
     public function chain($mw) {
         return new static($mw, $this->ctx, $this);
     }
+
+    public function chains(array $mw) {
+        return array_reduce($mw, function($acc, $mw) {
+            return $acc->chain($mw);
+        }, $this);
+    }
+
 
     public function getContext() {
         return $this->ctx;
