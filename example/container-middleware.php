@@ -16,8 +16,8 @@ $container['inc_mw'] = function() {
 $handler = mw\compose([
     function($i) { return $i; },
     function($i, $next) {
-        $ctx = $next->getContext();
-        return $next($i + $ctx['i']);
+        $c = $next->getContext()->getContainer();
+        return $next($i + $c->get('i'));
     },
     'inc_mw'
 ], new Mw\Context\ContainerContext($container->toInterop()));
