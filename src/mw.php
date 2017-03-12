@@ -6,9 +6,6 @@ use RuntimeException,
     SplMinHeap,
     Psr\Container\ContainerInterface;
 
-use function iter\map,
-    iter\chain;
-
 /** compose a set of middleware into a handler
 
     ```

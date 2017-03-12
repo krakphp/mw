@@ -17,14 +17,13 @@
         }
     ],
     "require": {
-        "php": ">=5.6",
-        "nikic/iter": "^1.4",
-        "psr/container": "^1.0"
+        "php": ">=5.6"
     },
     "require-dev": {
         "krak/cargo": "^0.2.0",
+        "nikic/iter": "^1.4",
         "peridot-php/peridot": "^1.18",
-        "pimple/pimple": "^3.0"
+        "psr/container": "^1.0"
     },
     "autoload": {
         "psr-4": {
