@@ -27,7 +27,6 @@ use function iter\map,
 
     @param array $mws The set of middleware to compose
     @param Context|null $ctx The context for the middleware
-    @param callable $last The final handler in case no middleware resolves the arguments
     @param string $link_class The class to use for linking the middleware
     @return \Closure the composed set of middleware as a handler
 */

@@ -8,7 +8,7 @@ The api documentation is broken up into 2 parts: Middleware documentation and Mi
 Middleware Functions
 ~~~~~~~~~~~~~~~~~~~~
 
-Closure compose(array $mws, Context $ctx = null, callable $last = null, $link_class = Link::class)
+Closure compose(array $mws, Context $ctx = null, $link_class = Link::class)
     Composes a set of middleware into a handler.
 
     .. code-block:: php
@@ -33,8 +33,6 @@ Closure compose(array $mws, Context $ctx = null, callable $last = null, $link_cl
 
     ``$ctx`` will default to ``Context\StdContext`` if none is supplied, and it will be the context that is passed to the start link (see: :doc:`advanced-usage` for more details).
 
-    ``$last`` represents the last middleware to be executed if no other middleware handle the parameters. This typically will throw an exception in that case, but it might be advantageous to set this to something else for your needs.
-
     ``$link_class`` is the class that will be constructed for the middleware link. It must be or extend ``Krak\Mw\Link`` (see: :doc:`advanced-usage` for more details).
 
 Closure composer(Context $ctx, $link_class = Link::class)
@@ -49,6 +47,18 @@ Closure composer(Context $ctx, $link_class = Link::class)
             mw1(),
             mw2()
         ]);
+
+Closure guardedComposer($composer, $msg)
+
+    Creates a composer that will automatically append a guard middleware with the given message when composing.
+
+    .. code-block:: php
+
+        $compose = mw\composer();
+        $compose = mw\guardedComposer($compose, 'No result was returned.');
+        $handler = $compose([]);
+        $handler();
+        // A NoResultException will be thrown with the `No result was returned.` message
 
 Closure group(array $mws)
     Creates a new *middleware* composed as one from a middleware stack.
@@ -121,11 +131,9 @@ Closure filter(callable $mw, callable $predicate)
 
     In this example, the stack of middleware always returns 1, however, the filtered middleware gets executed if the value is 4, and in that case, it returns 2 instead.
 
+
 Invoke Functions
 ~~~~~~~~~~~~~~~~
-
-Closure pimpleAwareInvoke(Pimple\\Container $c, $invoke = 'call_user_func')
-    invokes middleware while checking if the mw is a service defined in the pimple container
 
 Closure containerAwareInvoke(Psr\\Container\\ContainerInterface $c, $invoke = 'call_user_func')
     invokes middleware while checking if the mw is a service defined in the psr container.
@@ -136,64 +144,17 @@ Closure methodInvoke(string $method_name, $allow_callable = true, $invoke = 'cal
 Stack Functions
 ~~~~~~~~~~~~~~~
 
-MwStack stack($name, array $entries = [], Context $ctx = null, $link_class = Link::class)
-    Creates a MwStack instance. Every stack must have a name which is just a personal identifier for the stack. It's primary use is for errors/exceptions that help the user track down which stack has an issue. ``$ctx`` and ``$link_class`` are forwarded to the MwStack constructor.
+Stack stack(array $entries = [])
+    Creates a Stack instance. This is an alias of the ``Stack::__construct``
 
     .. code-block:: php
 
         <?php
 
-        $stack = mw\stack('demo stack');
-        $stack->push($mw)
-            ->unshift($mw1);
-
-        // compose into handler
-        $handler = $stack->compose();
-        // or, use as a grouped middleware
-        $handler = mw\compose([
-            $mw2,
-            $stack
-        ]);
-
-array stackEntry(callable $mw, $sort = 0, $name = null)
-    Creates an entry for the MwStack. This is only used if you want to initialize a stack with entries, else, you'll just be using the stack methods to create stack entries.
-
-    .. code-block:: php
-
-        <?php
-
-        $stack = mw\stack('demo stack', [
-            stackEntry($mw1, 0, 'mw1'),
-            stackEntry($mw2),
-            stackEntry($mw3, 5, 'mw3'),
-        ]);
-        // equivalent to
-        $stack = mw\stack('demo stack')
-            ->push($mw1, 0, 'mw1')
-            ->push($mw2)
-            ->push($mw3, 5, 'mw3');
-
-MwStack stackMerge(...$stacks)
-    Merges stacks into one another. The resulting stack has the same name as the first stack in the set. The values from the later stacks will override the values from the earlier stacks.
-
-    .. code-block:: php
-
-        <?php
-
-        $a = mw\stack('stack', [
-            mw\stackEntry($mw1),
-            mw\stackEntry($mw2),
-            mw\stackEntry($mw3, 0, 'mw')
-        ]);
-        $b = mw\stack('stack', [
-            mw\stackEntry($mw4, 0, 'mw'),
-        ]);
-        $c = mw\stackMerge($a, $b);
-        // stack $c is equivalent to
-        $c = mw\stack('stack')
-            ->push($mw1)
-            ->push($mw2)
-            ->push($mw4, 0, 'mw')
+        $stack = mw\stack([
+            $mw1,
+            $mw2
+        ])->unshift($mw0);
 
 Utility Functions
 ~~~~~~~~~~~~~~~~~
@@ -215,24 +176,24 @@ array splitArgs(array $args)
         }
 
 
-class MwStack implements Countable
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class Stack
+~~~~~~~~~~~
 
 The stack presents a mutable interface into a stack of middleware. Middleware can be added with a name and priority. Only one middleware with a given name may exist. Middleware that are last in the stack will be executed first once the stack is composed.
 
-__construct($name, Context $ctx = null, $link_class = Link::class)
-    Creates the mw stack with a name. The ``$ctx`` and ``$link_class`` are forwarded to ``mw\compose`` once the stack is composed.
-string getName()
-    returns the name of the middleware
-MwStack push($mw, $sort = 0, $name = null)
+__construct(array $entries = [])
+    Creates the stack and will ``fill`` it with the given entries.
+Stack fill($entries)
+    Pushes each entry onto the stack in the order defined.
+Stack push($mw, $sort = 0, $name = null)
     Pushes a new middleware on the stack. The sort determines the priority of the middleware. Middleware pushed at the same priority will be pushed on like a stack.
-MwStack unshift($mw, $sort = 0, $name = null)
+Stack unshift($mw, $sort = 0, $name = null)
     Similar to push except it prepends the stack at the beginning.
-MwStack on($name, $mw, $sort = 0)
+Stack on($name, $mw, $sort = 0)
     Simply an alias of ``push``; however, the argument order lends it nicer for adding/replacing named middleware.
-MwStack before($name, $mw, $mw_name = null)
+Stack before($name, $mw, $mw_name = null)
     Inserts a middleware right before the given middleware.
-MwStack after($name, $mw, $mw_name = null)
+Stack after($name, $mw, $mw_name = null)
     Inserts a middleware right after the given middleware.
 array shift($sort = 0)
     Shifts the stack at the priority given by taking an element from the front/bottom of the stack. The shifted stack entry is returned as a tuple.
@@ -240,24 +201,10 @@ array pop($sort = 0)
     Pops the stack at the priority given be taking an element from the back/top of the stack. The popped stack entry is returned as a tuple.
 array remove($name)
     Removes a named middleware. The removed middleware is returned as a tuple.
-array normalize()
+array toArray()
     Normalizes the stack into an array of middleware that can be used with ``mw\compose``
 mixed __invoke(...$params)
     Allows the middleware stack to be used as middleware itself.
-Closure compose(callable $last = null)
-    Composes the stack into a handler.
-Generator getEntries()
-    Yields the raw stack entries in the order they were added.
-MwStack withName($name)
-    Creates a clone of the current stack with an updated name.
-MwStack withContext(Context $ctx)
-    Creates a clone of the current stack with an updated context
-MwStack withLinkClass($class)
-    Creates a clone of the current stack with an updated link class
-MwStack withEntries($entries)
-    Creates a clone of the current stack with updated entries.
-MwStack static createFromEntries($name, $entries)
-    Creates a stack with a set of entries. ``mw\stack`` internally calls this.
 
 class Link
 ~~~~~~~~~~
@@ -274,7 +221,7 @@ getContext()
     returns the context instance apart of the link.
 
 class Link\\ContainerLink
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Extends the Link class and implements the Psr\\Container\\ContainerInterface and ArrayAccess. Keep in mind that it offers read-only access, so setting and deleting offsets will cause an exception to be thrown.
 
@@ -293,18 +240,8 @@ The default context for the mw system. It simply holds the a value to the invoke
 
 __construct($invoke = 'call_user_func')
 
-class Context\\PimpleContext implements Context
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Provides nice pimple integeration by allowing the context to act like a pimple container and it provides pimple invocation by default.
-
-View the :doc:`cookbook/pimple-middleware` for example on this.
-
-__construct(Container $container, $invoke = null)
-    The pimple container and an optional invoker if you don't want to use the ``pimpleAwareInvoke``
-
 class Context\\ContainerContext implements Context
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Provides psr container integeration by allowing the context to act like a psr container and it provides container invocation by default.
 

@@ -87,7 +87,7 @@ After Style
 Stack
 =====
 
-The library also comes with a MwStack that allows you to easily build a set of middleware.
+The library also comes with a Stack that allows you to easily build a set of middleware.
 
 .. code-block:: php
 
@@ -95,10 +95,11 @@ The library also comes with a MwStack that allows you to easily build a set of m
 
     use Krak\Mw;
 
-    $stack = mw\stack('Stack Name');
-    $stack->push(function($a, $next) {
-        return $next($a . 'b');
-    })
+    $stack = mw\stack([
+        function($a, $next) {
+            return $next($a . 'b');
+        },
+    ]);
     ->push(function($a, $next) {
         return $next($a) . 'z';
     }, 0, 'c')
@@ -117,6 +118,6 @@ The library also comes with a MwStack that allows you to easily build a set of m
         return $a;
     });
 
-    $handler = $stack->compose();
+    $handler = mw\compose([$stack]);
     $res = $handler('a');
     assert($res == 'abxcy');

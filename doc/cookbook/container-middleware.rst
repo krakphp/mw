@@ -2,7 +2,7 @@
 Container Middleware
 ====================
 
-You can easily integrate your middleware stacks with any PSR container using the ``Mw\Context\Container`` which will allow any middleware to be a container identifier and give you access to your container via the mw context.
+You can easily integrate your middleware stacks with any PSR container using the ``Mw\Context\ContainerContext`` which will allow any middleware to be a container identifier and give you access to your container via the mw context.
 
 .. code-block:: php
 

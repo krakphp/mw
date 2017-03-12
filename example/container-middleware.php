@@ -1,10 +1,11 @@
 <?php
 
 use Krak\Mw;
+use Krak\Cargo;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$container = new Pimple\Container();
+$container = Cargo\container();
 $container['i'] = 5;
 $container['inc_mw'] = function() {
     return function($i, $next) {
@@ -19,6 +20,6 @@ $handler = mw\compose([
         return $next($i + $ctx['i']);
     },
     'inc_mw'
-], new Mw\Context\PimpleContext($container));
+], new Mw\Context\ContainerContext($container->toInterop()));
 
 assert($handler(4) == 10);
