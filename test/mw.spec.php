@@ -164,13 +164,36 @@ describe('Mw', function() {
         });
         it('replaces an entry if it is pushed with the same name', function() {
             $stack = mw\stack();
-            $stack->push(id())
-                ->push(append('a'))
+            $stack->push(append('a'))
                 ->push(append('d'), 0, 'mw')
-                ->push(append('c'))
+                ->unshift(append('c'))
+                ->unshift(id())
                 ->push(append('b'), 0, 'mw');
             $handler = mw\compose([$stack]);
-            assert($handler('') == 'cba');
+            assert($handler('') == 'bac');
+        });
+        it('can retrieve a named entry', function() {
+            $stack = mw\stack();
+            $stack->on('a', function() {})
+                ->on('b', function() {});
+            $entry = $stack->get('b');
+            assert($entry[0] instanceof Closure && $entry[1] === 0 && $entry[2] === 'b');
+        });
+        it('can move an entry to the top of its stack', function() {
+            $stack = mw\stack();
+            $stack->push(append('a'), 0, 'append_a')
+                ->push(append('b'))
+                ->toTop('append_a');
+            $handler = mw\compose([id(), $stack]);
+            assert($handler('') == 'ab');
+        });
+        it('can move an entry to the bottom of its stack', function() {
+            $stack = mw\stack();
+            $stack->push(append('a'))
+                ->push(append('b'), 0, 'append_b')
+                ->toBottom('append_b');
+            $handler = mw\compose([id(), $stack]);
+            assert($handler('') == 'ab');
         });
     });
     describe('#methodInvoke', function() {

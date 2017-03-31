@@ -201,6 +201,14 @@ array pop($sort = 0)
     Pops the stack at the priority given be taking an element from the back/top of the stack. The popped stack entry is returned as a tuple.
 array remove($name)
     Removes a named middleware. The removed middleware is returned as a tuple.
+bool has($name)
+    Returns true if a named middleware exists in the stack
+array get($name)
+    Returns a 3-tuple of an entry like so: ``[$entry, $sort, $name]``. This will throw an exception if no entry is found.
+Stack toTop($name)
+    Moves the given entry to the top of its stack to be executed first.
+Stack toBottom($name)
+    Moves the given entry to the bottom of its stack to be executed last.
 array toArray()
     Normalizes the stack into an array of middleware that can be used with ``mw\compose``
 mixed __invoke(...$params)

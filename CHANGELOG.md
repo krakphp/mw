@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `toTop`, `toBottom`, `get`, `has` methods
+- Additional documentation
+
+### Fixed
+
+- Bug in Stack where unshifting would mess up the stored index values for named entries.
+- Bug where removed named entries wouldn't fully be deleted.
+
 ## [0.5.0] - 2017-03-11
 ### Added
 

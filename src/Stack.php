@@ -30,7 +30,7 @@ class Stack
         }
         array_push($this->entries[$sort], [$mw, $name]);
         if ($name) {
-            $this->names[$name] = [$sort, count($this->entries[$sort]) - 1];
+            $this->names[$name] = $sort;
         }
         return $this;
     }
@@ -50,7 +50,7 @@ class Stack
         }
         array_unshift($this->entries[$sort], [$mw, $name]);
         if ($name) {
-            $this->names[$name] = [$sort, 0];
+            $this->names[$name] = $sort;
         }
         return $this;
     }
@@ -64,30 +64,63 @@ class Stack
     }
 
     public function after($target, $mw, $name = null) {
-        if (!isset($this->names[$target])) {
+        if (!$this->has($target)) {
             throw new \LogicException("Cannot insert entry after '$target' because it's not in the stack");
         }
-        list($sort, $i) = $this->names[$target];
+        $sort = $this->names[$target];
         return $this->push($mw, $sort, $name);
     }
     public function before($target, $mw, $name = null) {
-        if (!isset($this->names[$target])) {
+        if (!$this->has($target)) {
             throw new \LogicException("Cannot insert entry before '$target' because it's not in the stack");
         }
-        list($sort, $i) = $this->names[$target];
+        $sort = $this->names[$target];
         return $this->unshift($mw, $sort, $name);
     }
-
     public function on($name, $mw, $sort = 0) {
         return $this->push($mw, $sort, $name);
     }
     public function remove($name) {
-        if (!isset($this->names[$name])) {
+        if (!$this->has($name)) {
             return $this;
         }
-        list($sort, $i) = $this->names[$name];
+        $sort = $this->names[$name];
+        $i = $this->indexOf($name);
         array_splice($this->entries[$sort], $i, 1);
+        unset($this->names[$name]);
         return $this;
+    }
+
+    public function get($name) {
+        if (!$this->has($name)) {
+            throw new \LogicException("Cannot get entry '$name' because it doesn't exist.");
+        }
+        $sort = $this->names[$name];
+        $i = $this->indexOf($name);
+        return [$this->entries[$sort][$i][0], $sort, $name];
+    }
+
+    public function has($name) {
+        return isset($this->names[$name]);
+    }
+
+    public function toTop($name) {
+        if (!$this->has($name)) {
+            throw new \LogicException("Cannot move entry '$name' to top because it doesn't exist.");
+        }
+
+        list($entry, $sort, $name) = $this->get($name);
+        return $this->remove($name)->push($entry, $sort, $name);
+    }
+
+    public function toBottom($name) {
+        if (!$this->has($name)) {
+            throw new \LogicException("Cannot move entry '$name' to top because it doesn't exist.");
+        }
+
+        list($entry, $sort, $name) = $this->get($name);
+        $this->remove($name);
+        return $this->remove($name)->unshift($entry, $sort, $name);
     }
 
     public function toArray() {
@@ -118,8 +151,18 @@ class Stack
             return false;
         }
 
-        list($sort, $i) = $this->names[$name];
+        $sort = $this->names[$name];
+        $i = $this->indexOf($name);
         $this->entries[$sort][$i] = [$mw, $name];
         return true;
+    }
+
+    private function indexOf($name) {
+        $sort = $this->names[$name];
+        foreach ($this->entries[$sort] as $i => list($entry, $entry_name)) {
+            if ($entry_name === $name) {
+                return $i;
+            }
+        }
     }
 }

@@ -121,3 +121,46 @@ The library also comes with a Stack that allows you to easily build a set of mid
     $handler = mw\compose([$stack]);
     $res = $handler('a');
     assert($res == 'abxcy');
+
+Priority Stacks
+---------------
+
+You can also manage priority by determining the stack index when you push an entry. the default stack index is 0.
+
+.. code-block:: php
+
+    <?php
+
+    use Krak\Mw;
+
+    $stack = mw\stack()
+        ->push(mw2(), 1)
+        ->push(mw1(), 1)
+        ->push(mw3())
+        ->push(mw4, -1);
+
+In the given stack, the flow of execution is ``mw1 -> mw2 -> mw3 -> mw4`` because ``mw1`` and ``mw2`` were pushed at a higher stack index than the other entries.
+
+Moving Entries
+--------------
+
+You can change the position of an entry by calling the ``toTop`` or ``toBottom`` methods of the stack. These will move the named entry to either the top or bottom of their stacks respectively.
+
+.. code-block:: php
+
+    <?php
+
+    use Krak\Mw;
+
+    $stack = mw\stack()->push(function($s, $next) {
+        return $next($s . 'a');
+    }, 0, 'append-a')
+    ->push(function($s, $next) {
+        return $next($s . 'b');
+    });
+
+    // the append-a entry is now at the top of the stack
+    $stack->toTop('append-a');
+
+    $handler = mw\compose([$stack]);
+    assert($handler('') == 'ab');
