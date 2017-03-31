@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.1] - 2017-03-31
+
 ### Added
 
 - `toTop`, `toBottom`, `get`, `has` methods
