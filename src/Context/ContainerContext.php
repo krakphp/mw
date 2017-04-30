@@ -2,8 +2,9 @@
 
 namespace Krak\Mw\Context;
 
-use Psr\Container\ContainerInterface,
-    Krak\Mw;
+use Psr\Container\ContainerInterface;
+use Krak\Mw;
+use Krak\Invoke;
 
 class ContainerContext implements Mw\Context
 {
@@ -12,7 +13,7 @@ class ContainerContext implements Mw\Context
 
     public function __construct(ContainerInterface $container, $invoke = null) {
         $this->container = $container;
-        $this->invoke = $invoke ?: Mw\containerAwareInvoke($container);
+        $this->invoke = $invoke ?: Invoke\ContainerInvoke::create($container);
     }
 
     public function getInvoke() {

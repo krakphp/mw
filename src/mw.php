@@ -168,7 +168,8 @@ function guard($msg) {
     };
 }
 
-/** invokes a middleware checking if the mw is a service defined in a PSR Container */
+/** @deprecated Use Krak\Invoke instead
+    invokes a middleware checking if the mw is a service defined in a PSR Container */
 function containerAwareInvoke(ContainerInterface $c, $invoke = 'call_user_func') {
     return function($func, ...$params) use ($c, $invoke) {
         if (is_string($func) && $c->has($func)) {
@@ -179,6 +180,7 @@ function containerAwareInvoke(ContainerInterface $c, $invoke = 'call_user_func')
     };
 }
 
+/** @deprecated Use Krak\Invoke instead */
 function methodInvoke($method, $allow_callable = true, $invoke = 'call_user_func') {
     return function($func, ...$params) use ($method, $invoke, $allow_callable) {
         if (is_object($func) && method_exists($func, $method)) {
