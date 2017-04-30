@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.2 - 2017-04-30
+
 ### Added
 
 - Invoke Library #3
