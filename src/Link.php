@@ -2,6 +2,8 @@
 
 namespace Krak\Mw;
 
+use Krak\Invoke;
+
 /** Represents a link in the middleware chain. A link instance is passed to every middleware
     as the last parameter which allows the next middleware to be called */
 class Link
@@ -23,7 +25,9 @@ class Link
         $mw = $this->mw;
         $invoke = $this->ctx->getInvoke();
         $params[] = $this->next;
-        return $invoke($mw, ...$params);
+        return $invoke instanceof Invoke\Invoke
+            ? $invoke->invoke($mw, ...$params)
+            : $invoke($mw, ...$params);
     }
 
     /** Chains a middleware to the current link */

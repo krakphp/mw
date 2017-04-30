@@ -17,7 +17,8 @@
         }
     ],
     "require": {
-        "php": ">=5.6"
+        "php": ">=5.6",
+        "krak/invoke": "^0.1.0"
     },
     "require-dev": {
         "krak/cargo": "^0.2.0",

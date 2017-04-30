@@ -1,13 +1,12 @@
 # Change Log
 
-All notable changes to this project will be documented in this file.
+## Unreleased
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/)
-and this project adheres to [Semantic Versioning](http://semver.org/).
+### Added
 
-## [Unreleased]
+- Invoke Library #3
 
-## [0.5.1] - 2017-03-31
+## 0.5.1 - 2017-03-31
 
 ### Added
 
@@ -19,7 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Bug in Stack where unshifting would mess up the stored index values for named entries.
 - Bug where removed named entries wouldn't fully be deleted.
 
-## [0.5.0] - 2017-03-11
+## 0.5.0 - 2017-03-11
+
 ### Added
 
 - `composer` func which creates composer functions that accept an array of middleware
@@ -33,18 +33,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Moved `MwStack` to simply `Stack` and simplified the API
 - Removed Pimple integration in favor for the PSR container.
 
-## [0.4.2] - 2017-01-19
+## 0.4.2 - 2017-01-19
+
 ### Added
 
 - Added `withName` func to MwStack
 - Made the `$name` parameter optional in the MwStack
 
-## [0.4.1] - 2017-01-19
+## 0.4.1 - 2017-01-19
+
 ### Added
 
 - Added `withContext` and `withLinkClass` options to MwStack.
 
-## [0.4.0] - 2017-01-04
+## 0.4.0 - 2017-01-04
+
 ### Changed
 
 - Made `splitArgs` a public function
@@ -60,13 +63,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   to middleware
 - Added Context\\PimpleContext to provide better pimple integration
 
-## [0.3.3] - 2017-01-03
+## 0.3.3 - 2017-01-03
+
 ### Changed
 
 - Update license year
 - Reverted changes from 0.3.1 and 0.3.2 due to bc breaks
 
-## [0.3.2] - 2016-12-26
+## 0.3.2 - 2016-12-26
+
 ### Added
 
 - Added the CHANGELOG.md
@@ -79,7 +84,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Several documentation pages to be more explicit
 - Moved docs to doc
 
-## [0.3.1] - 2016-12-19
+## 0.3.1 - 2016-12-19
+
 ### Added
 
 - Added Custom Invocation into the mw system
@@ -91,7 +97,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Updated the typehinting to be more forgiving to allow for Custom Invocation
 
-## [0.3.0] - 2016-11-27
+## 0.3.0 - 2016-11-27
+
 ### Changed
 
 - Better Error Handling
@@ -100,7 +107,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Improvements to before/after
 - More verbose function arguments
 
-## [0.2.0] - 2016-11-23
+## 0.2.0 - 2016-11-23
+
 ### Changed
 
 - Removed all http related information
